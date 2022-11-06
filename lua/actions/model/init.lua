@@ -3,13 +3,14 @@
 ---
 ---@class Action
 ---@field name string
+---@field running boolean
 ---@field env table|function|nil
 ---@field clear_env boolean|function|nil
 ---@field steps table
 ---@field cwd string|function|nil
 ---@field filetypes table|function|nil
 ---@field patterns table|function|nil
-local Action = {}
+local Action = { running = false }
 Action.__index = Action
 
 ---A Step represents a single job out of a sequence
@@ -41,6 +42,10 @@ function Action.create(name, o)
   end
   if type(o) ~= "table" then
     return a, "Action '" .. name .. "' should be a table!"
+  end
+  if string.len(name) > 35 then
+    return a,
+      "Action '" .. name .. "' should not be longer than 35 characters!"
   end
   a.name = name
   a.filetypes = o.filetypes

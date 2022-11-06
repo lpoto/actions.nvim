@@ -31,20 +31,20 @@ function setup.add(actions_table)
   end
 end
 
----Get a table of available action's names.
+---Get a table of available actions.
 ---Actions are available when the current filename
 ---matches their patterns and the current filetype matches
 ---their filetypes.
 ---
----@return table: A table of action's names.
+---@return table: A table of actions.
 function setup.get_available()
-  local names = {}
-  for name, action in pairs(actions) do
+  local actions_table = {}
+  for _, action in pairs(actions) do
     if action:is_available() then
-      table.insert(names, name)
+      table.insert(actions_table, action)
     end
   end
-  return names
+  return actions_table
 end
 
 return setup
