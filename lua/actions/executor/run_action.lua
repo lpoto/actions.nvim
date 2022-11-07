@@ -40,7 +40,16 @@ end
 ---@param on_exit function: A function called when a started action exits.
 ---@return boolean: whether the actions started successfully
 function run.run(action, prev_buf, on_exit)
-  local temp_win = open_temp_win(prev_buf)
+  ---@type number|nil: A temporary window with
+  ---buffer from which the action has been started oppened.
+  ---Fetch action's field from this window, so if the fields
+  ---are functions, they may be relative to current buffer.
+  local temp_win
+  if prev_buf ~= vim.fn.bufnr() then
+    temp_win = open_temp_win(prev_buf)
+  end
+
+  ---NOTE: fetch the action's fields
 
   local original_steps = action:get_steps()
 
@@ -71,6 +80,8 @@ function run.run(action, prev_buf, on_exit)
     log.warn(err)
   end
 
+  ---NOTE: close the temporaty window, it will be oppened
+  ---again when fetching data for steps
   pcall(vim.api.nvim_win_close, temp_win, true)
 
   local output_buf = vim.api.nvim_create_buf(false, true)
@@ -95,7 +106,9 @@ function run.run(action, prev_buf, on_exit)
     ---@type Step: a step to be run as a job
     local step = table.remove(steps, 1)
 
-    temp_win = open_temp_win(prev_buf)
+    if prev_buf ~= vim.fn.bufnr() then
+      temp_win = open_temp_win(prev_buf)
+    end
 
     local step_name = step:get_name()
     log.debug("Running step: " .. step_name)
@@ -187,7 +200,12 @@ function run.run(action, prev_buf, on_exit)
         if type(d) == "string" then
           s = { d }
         elseif type(d) == "table" then
-          s = d
+          for _, v in ipairs(d) do
+            if string.len(v) > 0 then
+              s = d
+              break
+            end
+          end
         end
         if next(s) ~= nil and run.write_output(output_buf, s) == false then
           run.clean(action, true, on_exit)
@@ -198,7 +216,12 @@ function run.run(action, prev_buf, on_exit)
         if type(d) == "string" then
           s = { d }
         elseif type(d) == "table" then
-          s = d
+          for _, v in ipairs(d) do
+            if string.len(v) > 0 then
+              s = d
+              break
+            end
+          end
         end
         if next(s) ~= nil and run.write_output(output_buf, s) == false then
           run.clean(action, true, on_exit)
