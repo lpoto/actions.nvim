@@ -12,6 +12,15 @@ log.prefix = "Actions.nvim"
 ---@type boolean
 log.silent = false
 
+---Notify the provided text with debug level.
+---@param txt string: Text to log
+function log.debug(txt)
+  if log.silent == true or log.level > vim.log.levels.DEBUG then
+    return
+  end
+  vim.notify(log.prefix .. ": " .. txt, vim.log.levels.DEBUG)
+end
+
 ---Notify the provided text with info level.
 ---@param txt string: Text to log
 function log.info(txt)
@@ -36,7 +45,7 @@ function log.error(txt)
   if log.silent == true or log.level > vim.log.levels.ERROR then
     return
   end
-  vim.notify(log.prefix ": " .. txt, vim.log.levels.ERROR)
+  vim.notify(log.prefix .. ": " .. txt, vim.log.levels.ERROR)
 end
 
 return log

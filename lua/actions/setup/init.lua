@@ -1,5 +1,5 @@
 local log = require "actions.util.log"
-local Action, _ = require "actions.model"
+local Action = require "actions.model.action"
 
 ---A table of actions with their names as keys
 ---and definitions as values

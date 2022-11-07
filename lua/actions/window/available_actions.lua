@@ -2,16 +2,20 @@ local log = require "actions.util.log"
 local setup = require "actions.setup"
 local executor = require "actions.executor"
 
+local prev_buf = nil
+local buf = nil
+local outter_buf = nil
+
 local window = {}
 
-local set_actions_window_lines
-local set_outter_actions_window_lines
-local set_actions_window_options
-local set_actions_window_highlights
-local set_outter_actions_window_highlights
+local set_window_lines
+local set_outter_window_lines
+local set_window_options
+local set_window_highlights
+local set_outter_window_highlights
 
 ---Opens a floating window displayed
----over the right half of the editor.
+---over the center of the editor.
 ---
 ---@return number: the oppened buffer number, -1 on failure
 function window.open()
@@ -22,13 +26,15 @@ function window.open()
     return -1
   end
 
+  prev_buf = vim.fn.bufnr()
+
   local width = 50
   local height = 30
   local row = vim.o.lines / 2 - height / 2
   local col = vim.o.columns / 2 - width / 2
 
-  local outter_buf = vim.api.nvim_create_buf(false, true)
-  local buf = vim.api.nvim_create_buf(false, true)
+  outter_buf = vim.api.nvim_create_buf(false, true)
+  buf = vim.api.nvim_create_buf(false, true)
 
   vim.api.nvim_open_win(outter_buf, true, {
     relative = "editor",
@@ -41,8 +47,8 @@ function window.open()
     focusable = false,
     noautocmd = true,
   })
-  set_outter_actions_window_highlights()
-  set_outter_actions_window_lines(outter_buf, width, actions)
+  set_outter_window_highlights()
+  set_outter_window_lines(width, actions)
 
   vim.api.nvim_open_win(buf, true, {
     relative = "editor",
@@ -55,17 +61,20 @@ function window.open()
     --border = "rounded",
   })
 
-  set_actions_window_highlights()
-  set_actions_window_lines(actions)
-  set_actions_window_options(buf, outter_buf)
+  set_window_highlights()
+  set_window_lines(actions)
+  set_window_options()
 
   return buf
 end
 
 ---Reads the name of the actions in the line under the cursor.
 ---Passes the name of the action to executor.start_or_kill(name).
----If executor started the action, opens the output of the started action.
 function window.select_action_under_cursor()
+  local bufnr = vim.fn.bufnr()
+  if buf ~= bufnr then
+    return
+  end
   local linenr = vim.fn.line "."
   local name = vim.fn.getline(linenr)
   ---@type Action|nil
@@ -74,19 +83,79 @@ function window.select_action_under_cursor()
     log.warn("Action '" .. name .. "' does not exist!")
     return
   end
-  if action.running == true then
-    executor.kill(name)
+  -- NOTE: if action is running kill it and remove
+  -- [running] from the actions's row in the window
+  if executor.is_running(action.name) == true then
+    if
+      executor.kill(name, function()
+        local l = "> " .. string.rep(" ", 37) .. "[killed]"
+        pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
+        pcall(
+          vim.api.nvim_buf_set_lines,
+          outter_buf,
+          linenr + 3,
+          linenr + 4,
+          false,
+          { l }
+        )
+        pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
+      end) == true
+    then
+      local l = "> "
+      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
+      pcall(
+        vim.api.nvim_buf_set_lines,
+        outter_buf,
+        linenr + 3,
+        linenr + 4,
+        false,
+        { l }
+      )
+      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
+    end
     return
   end
-  if executor.start(name) == true then
-    -- TODO: open output window
-    return
+  if
+    executor.start(name, prev_buf, function()
+      local l = "> " .. string.rep(" ", 37) .. "[done]"
+      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
+      pcall(
+        vim.api.nvim_buf_set_lines,
+        outter_buf,
+        linenr + 3,
+        linenr + 4,
+        false,
+        { l }
+      )
+      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
+    end) == true
+  then
+    if executor.is_running(name) == true then
+      local l = "> " .. string.rep(" ", 37) .. "[running]"
+      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
+      pcall(
+        vim.api.nvim_buf_set_lines,
+        outter_buf,
+        linenr + 3,
+        linenr + 4,
+        false,
+        { l }
+      )
+      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
+    end
+  end
+  if temp_win ~= nil then
+    pcall(vim.api.nvim_win_close, temp_win, true)
   end
 end
 
 ---Reads the name of the actions in the line under the cursor.
 ---If the action is running, shows its output in another window.
 function window.output_of_action_under_cursor()
+  local bufnr = vim.fn.bufnr()
+  if buf ~= bufnr then
+    return
+  end
   local linenr = vim.fn.line "."
   local name = vim.fn.getline(linenr)
   ---@type Action|nil
@@ -105,21 +174,17 @@ end
 ---be the currently oppened window.
 ---
 ---@param actions table: a table of available actions
-set_actions_window_lines = function(actions)
-  local buf = vim.fn.bufnr()
+set_window_lines = function(actions)
+  local bufnr = vim.fn.bufnr()
+  if buf ~= bufnr then
+    return
+  end
 
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
 
   local lines = {}
-  for i, action in ipairs(actions) do
+  for _, action in ipairs(actions) do
     local l = action:get_name()
-    if action.running == true then
-      local n = string.len(l) + 2
-      l = l .. "  [running]"
-      for j = 1, 9 do
-        vim.fn.matchaddpos("Function", { { i, n + j } })
-      end
-    end
     table.insert(lines, l)
   end
   vim.api.nvim_buf_set_lines(
@@ -134,24 +199,26 @@ end
 
 ---Replace lines in the outter actions window with instructions
 ---
----@param outter_buf number: buffer number of the actions buffer
 ---@param width number: width of the actions window
 ---@param actions table: a table of available actions
-set_outter_actions_window_lines = function(outter_buf, width, actions)
+set_outter_window_lines = function(width, actions)
+  local bufnr = vim.fn.bufnr()
+  if bufnr ~= outter_buf then
+    return
+  end
+
   vim.api.nvim_buf_set_option(outter_buf, "modifiable", true)
 
   local lines = {
     " Run an action with: '<ENTER>'",
     " Kill a running action with: '<ENTER>'",
-    " Display output of a an action with: 'o'",
+    " Open quickfix to see output (:h quickfix)",
     string.rep("-", width),
   }
-  for i, _ in ipairs(actions) do
+  for _, action in ipairs(actions) do
     local l = "> "
-    vim.fn.matchaddpos("Comment", { { i + 4, 1 }, { i + 4, 2 } })
-    l = l .. string.rep(" ", 37) .. "[running]"
-    for j = 1, 9 do
-      vim.fn.matchaddpos("Function", { { i + 4, j + 39 } })
+    if executor.is_running(action.name) then
+      l = l .. string.rep(" ", 37) .. "[running]"
     end
     table.insert(lines, l)
   end
@@ -170,26 +237,43 @@ end
 ---Set higlights for the actions window.
 ---NOTE: actions window should be the
 ---currently oppened window.
-set_actions_window_highlights = function()
-  vim.api.nvim_set_hl(0, "NormalFloat", {})
-  vim.api.nvim_set_hl(0, "FloatBorder", {})
+set_window_highlights = function()
+  local bufnr = vim.fn.bufnr()
+  if bufnr ~= buf then
+    return
+  end
+  local winnid = vim.fn.bufwinid(bufnr)
+  vim.api.nvim_win_set_option(
+    winnid,
+    "winhighlight",
+    "NormalFloat:Normal,FloatBorder:Normal,CursorLine:Constant"
+  )
+
+  vim.opt_local.cursorline = true
 end
 
 ---Set higlights for the outter actions window.
 ---NOTE: outter actions window should be the
 ---currently oppened window.
-set_outter_actions_window_highlights = function()
-  vim.api.nvim_set_hl(0, "NormalFloat", {})
-  vim.api.nvim_set_hl(0, "FloatBorder", {})
-  vim.fn.matchaddpos("Comment", { 1, 2, 3, 4 })
+set_outter_window_highlights = function()
+  local bufnr = vim.fn.bufnr()
+  if bufnr ~= outter_buf then
+    return
+  end
+  local winnid = vim.fn.bufwinid(bufnr)
+  vim.api.nvim_win_set_option(
+    winnid,
+    "winhighlight",
+    "NormalFloat:Normal,FloatBorder:Normal,Normal:Comment"
+  )
 end
 
 ---Set buffer options, remappings and autocommands
 ---for the actions window.
----
----@param buf number: buffer number of the actions buffer
----@param outter_buf number: buffer number of the outter actions buffer
-set_actions_window_options = function(buf, outter_buf)
+set_window_options = function()
+  if vim.fn.bufnr() ~= buf then
+    return
+  end
   vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
   vim.api.nvim_buf_set_option(outter_buf, "bufhidden", "wipe")
 
@@ -200,6 +284,7 @@ set_actions_window_options = function(buf, outter_buf)
     buffer = buf,
     group = "ActionsWindow",
     callback = function()
+      prev_buf = nil
       vim.api.nvim_buf_delete(buf, {
         force = true,
       })
