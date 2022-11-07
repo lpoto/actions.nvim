@@ -1,6 +1,7 @@
 local log = require "actions.util.log"
 local setup = require "actions.setup"
 local executor = require "actions.executor"
+local output_window = require "actions.window.action_output"
 
 local prev_buf = nil
 local buf = nil
@@ -144,9 +145,6 @@ function window.select_action_under_cursor()
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
     end
   end
-  if temp_win ~= nil then
-    pcall(vim.api.nvim_win_close, temp_win, true)
-  end
 end
 
 ---Reads the name of the actions in the line under the cursor.
@@ -164,7 +162,7 @@ function window.output_of_action_under_cursor()
     log.warn("Action '" .. name .. "' does not exist!")
     return
   end
-  -- TODO: open output window
+  output_window.open(action)
 end
 
 ---Replace lines in the actions window with
@@ -212,7 +210,7 @@ set_outter_window_lines = function(width, actions)
   local lines = {
     " Run an action with: '<ENTER>'",
     " Kill a running action with: '<ENTER>'",
-    " Open quickfix to see output (:h quickfix)",
+    " See the output of an action with: 'o'",
     string.rep("-", width),
   }
   for _, action in ipairs(actions) do
@@ -319,6 +317,14 @@ set_window_options = function()
     "o",
     "<CMD>lua require('actions.window.available_actions')"
       .. ".output_of_action_under_cursor()<CR>",
+    {}
+  )
+  vim.api.nvim_buf_set_keymap(
+    buf,
+    "",
+    "<CR>",
+    "<CMD>lua require('actions.window.available_actions')"
+      .. ".select_action_under_cursor()<CR>",
     {}
   )
 end

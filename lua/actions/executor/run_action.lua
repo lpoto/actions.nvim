@@ -39,6 +39,7 @@ end
 ---@param prev_buf number?: parent buffer from which the action has been started
 ---@param on_exit function: A function called when a started action exits.
 ---@return boolean: whether the actions started successfully
+---TODO: this function should be refactored, split into multiple smaller functions.
 function run.run(action, prev_buf, on_exit)
   ---@type number|nil: A temporary window with
   ---buffer from which the action has been started oppened.
@@ -320,6 +321,14 @@ function run.write_output(buf, lines, first)
   if vim.fn.bufexists(buf) ~= 1 then
     return false
   end
+
+  local modifiable = vim.api.nvim_buf_get_option(buf, "modifiable")
+  local readonly = vim.api.nvim_buf_get_option(buf, "readonly")
+  local buftype = vim.api.nvim_buf_get_option(buf, "buftype")
+  pcall(vim.api.nvim_buf_set_option, buf, "modifiable", true)
+  pcall(vim.api.nvim_buf_set_option, buf, "readonly", false)
+  pcall(vim.api.nvim_buf_set_option, buf, "buftype", "")
+
   local ok, e
   if first == true then
     ok, e = pcall(vim.api.nvim_buf_set_lines, buf, 0, -1, false, lines)
@@ -329,6 +338,10 @@ function run.write_output(buf, lines, first)
   if ok == false then
     log.warn(e)
   end
+
+  pcall(vim.api.nvim_buf_set_option, buf, "modifiable", modifiable)
+  pcall(vim.api.nvim_buf_set_option, buf, "readonly", readonly)
+  pcall(vim.api.nvim_buf_set_option, buf, "buftype", buftype)
 
   return ok
 end
@@ -389,11 +402,13 @@ function run.save_output_buffer(action, buf)
     vim.cmd("bunload " .. loaded_buf)
   end
   pcall(vim.cmd, "silent saveas! " .. path)
-  pcall(vim.api.nvim_buf_delete, buf, { force = true })
-  pcall(vim.api.nvim_win_close, win, true)
+  if vim.fn.bufloaded(buf) ~= 1 then
+    pcall(vim.api.nvim_buf_delete, buf, { force = true })
+  end
   if is_loaded == 1 then
     pcall(vim.fn.bufload, loaded_buf)
   end
+  pcall(vim.api.nvim_win_close, win, true)
 end
 
 ---Open a 1x1 temporary window
