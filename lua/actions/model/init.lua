@@ -3,14 +3,13 @@
 ---
 ---@class Action
 ---@field name string
----@field running boolean
 ---@field env table|function|nil
 ---@field clear_env boolean|function|nil
 ---@field steps table
 ---@field cwd string|function|nil
 ---@field filetypes table|function|nil
 ---@field patterns table|function|nil
-local Action = { running = false }
+local Action = {}
 Action.__index = Action
 
 ---A Step represents a single job out of a sequence
@@ -262,6 +261,14 @@ function Action:is_available()
     end
   end
   return false
+end
+
+---Returns the path to the output file for this action.
+function Action:get_output_path()
+  return vim.fn.stdpath "data"
+    .. "/actions_output/"
+    .. self:get_name()
+    .. ".out"
 end
 
 ---Create a step from a table

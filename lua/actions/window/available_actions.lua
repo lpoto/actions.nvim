@@ -4,14 +4,14 @@ local executor = require "actions.executor"
 
 local window = {}
 
-local set_actions_window_lines
-local set_outter_actions_window_lines
-local set_actions_window_options
-local set_actions_window_highlights
-local set_outter_actions_window_highlights
+local set_window_lines
+local set_outter_window_lines
+local set_window_options
+local set_window_highlights
+local set_outter_window_highlights
 
 ---Opens a floating window displayed
----over the right half of the editor.
+---over the center of the editor.
 ---
 ---@return number: the oppened buffer number, -1 on failure
 function window.open()
@@ -41,8 +41,8 @@ function window.open()
     focusable = false,
     noautocmd = true,
   })
-  set_outter_actions_window_highlights()
-  set_outter_actions_window_lines(outter_buf, width, actions)
+  set_outter_window_highlights()
+  set_outter_window_lines(outter_buf, width, actions)
 
   vim.api.nvim_open_win(buf, true, {
     relative = "editor",
@@ -55,9 +55,9 @@ function window.open()
     --border = "rounded",
   })
 
-  set_actions_window_highlights()
-  set_actions_window_lines(actions)
-  set_actions_window_options(buf, outter_buf)
+  set_window_highlights()
+  set_window_lines(actions)
+  set_window_options(buf, outter_buf)
 
   return buf
 end
@@ -74,14 +74,11 @@ function window.select_action_under_cursor()
     log.warn("Action '" .. name .. "' does not exist!")
     return
   end
-  if action.running == true then
+  if executor.is_running(action.name) == true then
     executor.kill(name)
     return
   end
-  if executor.start(name) == true then
-    -- TODO: open output window
-    return
-  end
+  executor.start(name)
 end
 
 ---Reads the name of the actions in the line under the cursor.
@@ -105,7 +102,7 @@ end
 ---be the currently oppened window.
 ---
 ---@param actions table: a table of available actions
-set_actions_window_lines = function(actions)
+set_window_lines = function(actions)
   local buf = vim.fn.bufnr()
 
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
@@ -130,7 +127,7 @@ end
 ---@param outter_buf number: buffer number of the actions buffer
 ---@param width number: width of the actions window
 ---@param actions table: a table of available actions
-set_outter_actions_window_lines = function(outter_buf, width, actions)
+set_outter_window_lines = function(outter_buf, width, actions)
   vim.api.nvim_buf_set_option(outter_buf, "modifiable", true)
 
   local lines = {
@@ -141,7 +138,7 @@ set_outter_actions_window_lines = function(outter_buf, width, actions)
   }
   for i, action in ipairs(actions) do
     local l = "> "
-    if action.running then
+    if executor.is_running(action.name) then
       l = l .. string.rep(" ", 37) .. "[running]"
       for j = 1, 9 do
         vim.fn.matchaddpos("Function", { { i + 4, j + 39 } })
@@ -164,7 +161,7 @@ end
 ---Set higlights for the actions window.
 ---NOTE: actions window should be the
 ---currently oppened window.
-set_actions_window_highlights = function()
+set_window_highlights = function()
   local winnid = vim.fn.bufwinid(vim.fn.bufnr())
   vim.api.nvim_win_set_option(
     winnid,
@@ -178,7 +175,7 @@ end
 ---Set higlights for the outter actions window.
 ---NOTE: outter actions window should be the
 ---currently oppened window.
-set_outter_actions_window_highlights = function()
+set_outter_window_highlights = function()
   local winnid = vim.fn.bufwinid(vim.fn.bufnr())
   vim.api.nvim_win_set_option(
     winnid,
@@ -192,7 +189,7 @@ end
 ---
 ---@param buf number: buffer number of the actions buffer
 ---@param outter_buf number: buffer number of the outter actions buffer
-set_actions_window_options = function(buf, outter_buf)
+set_window_options = function(buf, outter_buf)
   vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
   vim.api.nvim_buf_set_option(outter_buf, "bufhidden", "wipe")
 
