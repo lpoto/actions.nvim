@@ -3,13 +3,14 @@
 ---
 ---@class Action
 ---@field name string
+---@field running boolean
 ---@field env table|function|nil
 ---@field clear_env boolean|function|nil
 ---@field steps table
 ---@field cwd string|function|nil
 ---@field filetypes table|function|nil
 ---@field patterns table|function|nil
-local Action = {}
+local Action = { running = false }
 Action.__index = Action
 
 ---A Step represents a single job out of a sequence
@@ -41,6 +42,10 @@ function Action.create(name, o)
   end
   if type(o) ~= "table" then
     return a, "Action '" .. name .. "' should be a table!"
+  end
+  if string.len(name) > 35 then
+    return a,
+      "Action '" .. name .. "' should not be longer than 35 characters!"
   end
   a.name = name
   a.filetypes = o.filetypes
@@ -181,6 +186,7 @@ function Action:get_filetypes()
           .. self.name
           .. "': Step's 'filetype' should be a string or a function returning a string!"
     end
+    table.insert(ft2, v)
   end
   return ft2, nil
 end
@@ -192,7 +198,7 @@ end
 ---@return table: A table of patterns.
 ---@return string|nil: An error that occured when fetching the patterns.
 function Action:get_patterns()
-  local pt = self.filetypes
+  local pt = self.patterns
   if pt == nil then
     return {}, nil
   end
@@ -214,6 +220,7 @@ function Action:get_patterns()
       return {},
         "Step's 'pattern' should be a string or a function returning a string!"
     end
+    table.insert(pt2, v)
   end
   return pt2, nil
 end

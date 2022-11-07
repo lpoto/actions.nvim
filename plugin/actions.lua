@@ -1,5 +1,8 @@
 if 1 ~= vim.fn.has "nvim-0.7.0" then
-  vim.api.nvim_err_writeln "actions.nvim requires at least nvim-0.7.0"
+  vim.notify(
+    "Actions.nvim: requires at least nvim-0.7.0",
+    vim.log.levels.ERROR
+  )
   return
 end
 

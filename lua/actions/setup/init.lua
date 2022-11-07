@@ -1,3 +1,4 @@
+local log = require "actions.util.log"
 local Action, _ = require "actions.model"
 
 ---A table of actions with their names as keys
@@ -15,36 +16,41 @@ local setup = {}
 ---@return nil
 function setup.add(actions_table)
   if type(actions_table) ~= "table" then
-    vim.notify(
-      "Actions.nvim: Param 'actions_table' should be a table!",
-      vim.log.levels.ERROR
-    )
+    log.error "Param 'actions_table' should be a table!"
     return
   end
   for name, o in pairs(actions_table) do
     local action, err = Action.create(name, o)
     if err ~= nil then
-      vim.notify("Actions.nvim: " .. err, vim.log.levels.WARN)
+      log.warn(err)
     else
       actions[action:get_name()] = action
     end
   end
 end
 
----Get a table of available action's names.
+---Get a table of available actions.
 ---Actions are available when the current filename
 ---matches their patterns and the current filetype matches
 ---their filetypes.
 ---
----@return table: A table of action's names.
+---@return table: A table of actions.
 function setup.get_available()
-  local names = {}
-  for name, action in pairs(actions) do
+  local actions_table = {}
+  for _, action in pairs(actions) do
     if action:is_available() then
-      table.insert(names, name)
+      table.insert(actions_table, action)
     end
   end
-  return names
+  return actions_table
+end
+
+---Get an action identified by the provided name.
+---
+---@param name string: name of an action
+---@return Action|nil: action identified by the provided name
+function setup.get_action(name)
+  return actions[name]
 end
 
 return setup
