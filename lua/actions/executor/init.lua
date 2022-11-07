@@ -1,11 +1,9 @@
 local log = require "actions.util.log"
 local setup = require "actions.setup"
-local action_window = require "actions.window.running_action"
 
 ---A table of running actions with
----action names for keys and tables for
----values. The table values contains keys
----"job" and "buf".
+---action names for keys and job id's for
+---values.
 ---
 ---@type table
 local running_actions = {}
@@ -24,40 +22,32 @@ end
 ---Run the action identified by the provided name
 ---
 ---@param name string: name of the action
+---@return boolean: whether the action was started successfully
 function executor.start(name)
   ---@type Action|nil
   local action = setup.get_action(name)
   if action == nil then
-    return
+    return false
   end
   if executor.is_running(action.name) == true then
-    if
-      action_window.open(action.name, running_actions[action.name]["buf"])
-      == -1
-    then
-      running_actions[action.name] = nil
-    else
-      log.warn("Action '" .. name .. "' is already running!")
-      return
-    end
+    log.warn("Action '" .. name .. "' is already running!")
+    return false
   end
-  local buf = action_window.open(action.name, vim.fn.bufnr())
+  running_actions[name] = 0
+  return true
 end
 
 ---Kill the action identified by the provided name
 ---
 ---@param name string: name of the action
+---@return boolean: whether the action has been successfully killed
 function executor.kill(name)
-  log.info("Killing action: " .. name)
-end
-
----Kill the action identified by the provided name
----and delete its buffer
----
----@param name string: name of the action
-function executor.kill_and_delete_buffer(name)
-  pcall(executor.kill, name)
-  log.info("Killing action: " .. name)
+  if running_actions[name] == nil then
+    return false
+  end
+  pcall(vim.fn.jobstop, running_actions[name])
+  running_actions[name] = nil
+  return true
 end
 
 return executor
