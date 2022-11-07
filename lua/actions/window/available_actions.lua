@@ -111,15 +111,8 @@ set_actions_window_lines = function(actions)
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
 
   local lines = {}
-  for i, action in ipairs(actions) do
+  for _, action in ipairs(actions) do
     local l = action:get_name()
-    if action.running == true then
-      local n = string.len(l) + 2
-      l = l .. "  [running]"
-      for j = 1, 9 do
-        vim.fn.matchaddpos("Function", { { i, n + j } })
-      end
-    end
     table.insert(lines, l)
   end
   vim.api.nvim_buf_set_lines(
@@ -143,15 +136,16 @@ set_outter_actions_window_lines = function(outter_buf, width, actions)
   local lines = {
     " Run an action with: '<ENTER>'",
     " Kill a running action with: '<ENTER>'",
-    " Display output of a an action with: 'o'",
+    " Display output of an action with: 'o'",
     string.rep("-", width),
   }
-  for i, _ in ipairs(actions) do
+  for i, action in ipairs(actions) do
     local l = "> "
-    vim.fn.matchaddpos("Comment", { { i + 4, 1 }, { i + 4, 2 } })
-    l = l .. string.rep(" ", 37) .. "[running]"
-    for j = 1, 9 do
-      vim.fn.matchaddpos("Function", { { i + 4, j + 39 } })
+    if action.running then
+      l = l .. string.rep(" ", 37) .. "[running]"
+      for j = 1, 9 do
+        vim.fn.matchaddpos("Function", { { i + 4, j + 39 } })
+      end
     end
     table.insert(lines, l)
   end
@@ -171,17 +165,26 @@ end
 ---NOTE: actions window should be the
 ---currently oppened window.
 set_actions_window_highlights = function()
-  vim.api.nvim_set_hl(0, "NormalFloat", {})
-  vim.api.nvim_set_hl(0, "FloatBorder", {})
+  local winnid = vim.fn.bufwinid(vim.fn.bufnr())
+  vim.api.nvim_win_set_option(
+    winnid,
+    "winhighlight",
+    "NormalFloat:Normal,FloatBorder:Normal,CursorLine:Constant"
+  )
+
+  vim.opt_local.cursorline = true
 end
 
 ---Set higlights for the outter actions window.
 ---NOTE: outter actions window should be the
 ---currently oppened window.
 set_outter_actions_window_highlights = function()
-  vim.api.nvim_set_hl(0, "NormalFloat", {})
-  vim.api.nvim_set_hl(0, "FloatBorder", {})
-  vim.fn.matchaddpos("Comment", { 1, 2, 3, 4 })
+  local winnid = vim.fn.bufwinid(vim.fn.bufnr())
+  vim.api.nvim_win_set_option(
+    winnid,
+    "winhighlight",
+    "NormalFloat:Normal,FloatBorder:Normal,Normal:Comment"
+  )
 end
 
 ---Set buffer options, remappings and autocommands
