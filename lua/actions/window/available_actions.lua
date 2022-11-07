@@ -1,3 +1,4 @@
+local log = require "actions.util.log"
 local setup = require "actions.setup"
 
 local window = {}
@@ -16,10 +17,7 @@ function window.open()
   local actions = setup.get_available()
 
   if actions == nil or next(actions) == nil then
-    vim.notify(
-      "Workspace.nvim: There are no available actions",
-      vim.log.levels.WARN
-    )
+    log.warn "There are no available actions"
     return -1
   end
 
@@ -43,15 +41,15 @@ function window.open()
     noautocmd = true,
   })
   set_outter_actions_window_highlights()
-  set_outter_actions_window_lines(outter_buf, width)
+  set_outter_actions_window_lines(outter_buf, width, actions)
 
   vim.api.nvim_open_win(buf, true, {
     relative = "editor",
     style = "minimal",
-    width = width - 4,
+    width = width - 13,
     height = height - 5,
     row = row + 5,
-    col = col + 2,
+    col = col + 3,
     noautocmd = true,
     --border = "rounded",
   })
@@ -61,6 +59,16 @@ function window.open()
   set_actions_window_options(buf, outter_buf)
 
   return buf
+end
+
+function window.select_action_under_cursor()
+  local linenr = vim.fn.line "."
+  local line = vim.fn.getline(linenr)
+  print(line)
+end
+
+function window.output_of_action_under_cursor()
+  print "OUTPUT OF ACTION"
 end
 
 ---Replace lines in the actions window with
@@ -77,8 +85,7 @@ set_actions_window_lines = function(actions)
 
   local lines = {}
   for i, action in ipairs(actions) do
-    local l = "> " .. action:get_name()
-    vim.fn.matchaddpos("Comment", { { i, 1 }, { i, 2 } })
+    local l = action:get_name()
     if action.running == true then
       local n = string.len(l) + 2
       l = l .. "  [running]"
@@ -102,15 +109,25 @@ end
 ---
 ---@param outter_buf number: buffer number of the actions buffer
 ---@param width number: width of the actions window
-set_outter_actions_window_lines = function(outter_buf, width)
+---@param actions table: a table of available actions
+set_outter_actions_window_lines = function(outter_buf, width, actions)
   vim.api.nvim_buf_set_option(outter_buf, "modifiable", true)
 
   local lines = {
-    " Run an action with <ENTER>",
-    " Display output of a running action with <ENTER>",
-    " Kill an action with <SHIFT-ENTER>",
+    " Run an action with: '<ENTER>'",
+    " Kill a running action with: '<ENTER>'",
+    " Display output of a an action with: 'o'",
     string.rep("-", width),
   }
+  for i, _ in ipairs(actions) do
+    local l = "> "
+    vim.fn.matchaddpos("Comment", { { i + 4, 1 }, { i + 4, 2 } })
+    l = l .. string.rep(" ", 37) .. "[running]"
+    for j = 1, 9 do
+      vim.fn.matchaddpos("Function", { { i + 4, j + 39 } })
+    end
+    table.insert(lines, l)
+  end
   vim.api.nvim_buf_set_lines(
     outter_buf,
     0,
@@ -165,8 +182,9 @@ set_actions_window_options = function(buf, outter_buf)
     end,
     once = true,
   })
-  vim.api.nvim_set_keymap(
-    "",
+  vim.api.nvim_buf_set_keymap(
+    buf,
+    "n",
     "<Esc>",
     "<CMD>call nvim_exec_autocmds('BufLeave', {'buffer':"
       .. buf
@@ -175,5 +193,22 @@ set_actions_window_options = function(buf, outter_buf)
       noremap = true,
     }
   )
+  vim.api.nvim_buf_set_keymap(
+    buf,
+    "",
+    "<CR>",
+    "<CMD>lua require('actions.window.available_actions')"
+      .. ".select_action_under_cursor()<CR>",
+    {}
+  )
+  vim.api.nvim_buf_set_keymap(
+    buf,
+    "",
+    "o",
+    "<CMD>lua require('actions.window.available_actions')"
+      .. ".output_of_action_under_cursor()<CR>",
+    {}
+  )
 end
+
 return window

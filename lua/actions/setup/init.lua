@@ -1,3 +1,4 @@
+local log = require "actions.util.log"
 local Action, _ = require "actions.model"
 
 ---A table of actions with their names as keys
@@ -15,16 +16,13 @@ local setup = {}
 ---@return nil
 function setup.add(actions_table)
   if type(actions_table) ~= "table" then
-    vim.notify(
-      "Actions.nvim: Param 'actions_table' should be a table!",
-      vim.log.levels.ERROR
-    )
+    log.error "Param 'actions_table' should be a table!"
     return
   end
   for name, o in pairs(actions_table) do
     local action, err = Action.create(name, o)
     if err ~= nil then
-      vim.notify("Actions.nvim: " .. err, vim.log.levels.WARN)
+      log.warn(err)
     else
       actions[action:get_name()] = action
     end
