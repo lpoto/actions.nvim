@@ -45,4 +45,12 @@ function setup.get_available()
   return actions_table
 end
 
+---Get an action identified by the provided name.
+---
+---@param name string: name of an action
+---@return Action|nil: action identified by the provided name
+function setup.get_action(name)
+  return actions[name]
+end
+
 return setup

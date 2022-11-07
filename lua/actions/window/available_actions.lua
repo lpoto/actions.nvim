@@ -1,5 +1,6 @@
 local log = require "actions.util.log"
 local setup = require "actions.setup"
+local executor = require "actions.executor"
 
 local window = {}
 
@@ -61,14 +62,40 @@ function window.open()
   return buf
 end
 
+---Reads the name of the actions in the line under the cursor.
+---Passes the name of the action to executor.start_or_kill(name).
+---If executor started the action, opens the output of the started action.
 function window.select_action_under_cursor()
   local linenr = vim.fn.line "."
-  local line = vim.fn.getline(linenr)
-  print(line)
+  local name = vim.fn.getline(linenr)
+  ---@type Action|nil
+  local action = setup.get_action(name)
+  if action == nil then
+    log.warn("Action '" .. name .. "' does not exist!")
+    return
+  end
+  if action.running == true then
+    executor.kill(name)
+    return
+  end
+  if executor.start(name) == true then
+    -- TODO: open output window
+    return
+  end
 end
 
+---Reads the name of the actions in the line under the cursor.
+---If the action is running, shows its output in another window.
 function window.output_of_action_under_cursor()
-  print "OUTPUT OF ACTION"
+  local linenr = vim.fn.line "."
+  local name = vim.fn.getline(linenr)
+  ---@type Action|nil
+  local action = setup.get_action(name)
+  if action == nil then
+    log.warn("Action '" .. name .. "' does not exist!")
+    return
+  end
+  -- TODO: open output window
 end
 
 ---Replace lines in the actions window with
