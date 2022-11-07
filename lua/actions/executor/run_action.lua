@@ -7,6 +7,8 @@ local log = require "actions.util.log"
 ---@type table
 local running_actions = {}
 
+local open_temp_win
+
 local run = {}
 
 ---Returns the buffer name for the running action identified
@@ -34,9 +36,12 @@ function run.get_running_actions_count()
 end
 
 ---@param action Action: action to be run
+---@param prev_buf number?: parent buffer from which the action has been started
 ---@param on_exit function: A function called when a started action exits.
 ---@return boolean: whether the actions started successfully
-function run.run(action, on_exit)
+function run.run(action, prev_buf, on_exit)
+  local temp_win = open_temp_win(prev_buf)
+
   local original_steps = action:get_steps()
 
   ---@type table: a copy of original steps
@@ -66,6 +71,8 @@ function run.run(action, on_exit)
     log.warn(err)
   end
 
+  pcall(vim.api.nvim_win_close, temp_win, true)
+
   local output_buf = vim.api.nvim_create_buf(false, true)
 
   running_actions[action.name] = {
@@ -88,6 +95,8 @@ function run.run(action, on_exit)
     ---@type Step: a step to be run as a job
     local step = table.remove(steps, 1)
 
+    temp_win = open_temp_win(prev_buf)
+
     local step_name = step:get_name()
     log.debug("Running step: " .. step_name)
     --
@@ -96,6 +105,7 @@ function run.run(action, on_exit)
     exe, err = step:get_exe()
     if err ~= nil then
       log.error(err)
+      pcall(vim.api.nvim_win_close, temp_win, true)
       run.clean(action, true, on_exit)
       return false
     end
@@ -148,6 +158,8 @@ function run.run(action, on_exit)
       log.warn(err)
     end
 
+    pcall(vim.api.nvim_win_close, temp_win, true)
+
     if step_clear_env ~= true then
       local env3 = {}
       for k, v in pairs(env) do
@@ -199,7 +211,7 @@ function run.run(action, on_exit)
             "> ACTION ["
               .. action.name
               .. "] "
-              .. " exited witih code: "
+              .. " exited with code: "
               .. code,
           })
           run.clean(action, true, on_exit)
@@ -313,6 +325,8 @@ function run.save_output_buffer(action, buf)
     log.warn(dirname)
     return
   end
+  -- NOTE: make sure all the parent directories
+  -- of the output file exist. If not, create them
   local dir
   ok, dir = pcall(vim.fs.dir, dirname)
   if ok == false then
@@ -326,7 +340,51 @@ function run.save_output_buffer(action, buf)
       return
     end
   end
-  local v
+  -- NOTE: open a temporary window for saving
+  -- the output
+  local win = open_temp_win(buf)
+
+  -- NOTE: find a buffer with the action's
+  -- output file loaded
+  local get_ls = vim.tbl_filter(function(b)
+    return vim.api.nvim_buf_is_valid(b)
+      and vim.api.nvim_buf_get_name(b) == path
+  end, vim.api.nvim_list_bufs())
+
+  local loaded_buf = nil
+  if next(get_ls) ~= nil then
+    _, loaded_buf = next(get_ls)
+  end
+
+  -- NOTE: if buffer with the action's output file
+  -- is loaded, unload it temporarily and save the new
+  -- output, then load it again
+  local is_loaded = 0
+  pcall(vim.api.nvim_buf_set_option, buf, "buftype", "")
+  ok, is_loaded = pcall(vim.fn.bufloaded, loaded_buf)
+  if ok == true and is_loaded == 1 then
+    vim.cmd("bunload " .. loaded_buf)
+  end
+  pcall(vim.cmd, "silent saveas! " .. path)
+  pcall(vim.api.nvim_buf_delete, buf, { force = true })
+  pcall(vim.api.nvim_win_close, win, true)
+  if is_loaded == 1 then
+    pcall(vim.fn.bufload, loaded_buf)
+  end
+end
+
+---Open a 1x1 temporary window
+---
+---@param buf number?: the number of a buffer
+---@return number|nil: id of the oppened window, nil on failure
+open_temp_win = function(buf)
+  if buf == nil then
+    return
+  end
+  local ok, v = pcall(vim.fn.bufexists, buf)
+  if ok == false or v ~= 1 then
+    return
+  end
   ok, v = pcall(vim.api.nvim_open_win, buf, true, {
     relative = "editor",
     style = "minimal",
@@ -337,14 +395,10 @@ function run.save_output_buffer(action, buf)
     focusable = false,
     noautocmd = true,
   })
-  if ok == false then
-    return
+  if ok then
+    return v
   end
-  pcall(vim.api.nvim_buf_set_option, buf, "buftype", "")
-  pcall(vim.fn.delete, path)
-  pcall(vim.cmd, "silent update! >>" .. path)
-  pcall(vim.api.nvim_buf_delete, buf, { force = true })
-  pcall(vim.api.nvim_win_close, v, true)
+  return nil
 end
 
 return run

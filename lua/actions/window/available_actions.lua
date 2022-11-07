@@ -115,26 +115,8 @@ function window.select_action_under_cursor()
     end
     return
   end
-  -- NOTE: if action is not running start it and add
-  -- [running] to the actions's row in the window
-  local temp_win = nil
-  if prev_buf ~= nil then
-    local ok, v = pcall(vim.api.nvim_open_win, prev_buf, true, {
-      relative = "editor",
-      style = "minimal",
-      width = 1,
-      height = 1,
-      row = 1,
-      col = 1,
-      focusable = false,
-      noautocmd = true,
-    })
-    if ok then
-      temp_win = v
-    end
-  end
   if
-    executor.start(name, function()
+    executor.start(name, prev_buf, function()
       local l = "> " .. string.rep(" ", 37) .. "[done]"
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
       pcall(

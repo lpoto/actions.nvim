@@ -18,9 +18,11 @@ end
 ---Run the action identified by the provided name
 ---
 ---@param name string: name of the action
+---@param prev_buf number?: number of the buffer from
+---which the action is executed
 ---@param on_exit function: function called when the action exits.
 ---@return boolean: whether the action was started successfully
-function executor.start(name, on_exit)
+function executor.start(name, prev_buf, on_exit)
   ---@type Action|nil
   local action = setup.get_action(name)
   if action == nil then
@@ -35,7 +37,7 @@ function executor.start(name, on_exit)
     log.warn("Can only run " .. MAX_RUNNING_JOBS .. " actions at once!")
     return false
   end
-  return run.run(action, on_exit)
+  return run.run(action, prev_buf, on_exit)
 end
 
 ---Kill the action identified by the provided name
