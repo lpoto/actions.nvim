@@ -2,10 +2,13 @@ local run_action = require "actions.executor.run_action"
 local setup = require "actions.setup"
 local log = require "actions.util.log"
 
----@type string|nil: Name of the last oppened action
-local last_oppened = nil
+---@type number|nil: Buffer number of the oppened
+local oppened_buf = nil
 
 local window = {}
+
+---@type string|nil: Name of the last oppened action
+window.last_oppened = nil
 
 ---@type function|nil: Function called before oppening output
 ---buffer in the current window.
@@ -80,8 +83,11 @@ function window.open(action)
   pcall(vim.api.nvim_buf_set_option, buf, "buflisted", false)
   pcall(vim.api.nvim_buf_set_option, buf, "bufhidden", "wipe")
 
-  pcall(vim.fn.matchadd, "Function", "^> ACTION \\[.*\\]")
-  pcall(vim.fn.matchadd, "Constant", "^> STEP \\[.*\\]")
+  pcall(vim.fn.matchadd, "Function", "^> ACTION \\[.*\\] SUCCESS$")
+  pcall(vim.fn.matchadd, "Function", "^> ACTION \\[.*\\] START$")
+  pcall(vim.fn.matchadd, "Constant", "^> STEP \\[.*\\]$")
+
+  oppened_buf = buf
 
   pcall(vim.api.nvim_create_augroup, "ActionsWindow", {
     clear = true,
@@ -90,10 +96,13 @@ function window.open(action)
     buffer = buf,
     group = "ActionsWindow",
     command = "delmarks!",
+    callback = function()
+      oppened_buf = nil
+    end,
     once = true,
   })
 
-  last_oppened = action.name
+  window.last_oppened = action.name
   pcall(
     vim.api.nvim_win_set_cursor,
     0,
@@ -104,16 +113,31 @@ end
 ---Reopens last oppened output window.
 ---If there is any.
 function window.open_last()
-  if last_oppened == nil then
+  if window.last_oppened == nil then
     log.warn "There is no last oppened action output!"
     return
   end
-  local action = setup.get_action(last_oppened)
+  local action = setup.get_action(window.last_oppened)
   if action == nil then
     log.warn "There is no last oppened action output!"
     return
   end
   window.open(action)
+end
+
+---Reopens last oppened output window.
+---If there is any.
+function window.toggle_last()
+  if
+    oppened_buf == nil
+    or vim.fn.bufexists(oppened_buf) ~= 1
+    or vim.fn.bufloaded(oppened_buf) ~= 1
+  then
+    window.open_last()
+  else
+    vim.api.nvim_buf_delete(oppened_buf, { force = true })
+    oppened_buf = nil
+  end
 end
 
 return window
