@@ -2,6 +2,7 @@ local log = require "actions.util.log"
 local setup = require "actions.setup"
 local executor = require "actions.executor"
 
+local prev_buf = nil
 local buf = nil
 local outter_buf = nil
 
@@ -24,6 +25,8 @@ function window.open()
     log.warn "There are no available actions"
     return -1
   end
+
+  prev_buf = vim.fn.bufnr()
 
   local width = 50
   local height = 30
@@ -83,7 +86,21 @@ function window.select_action_under_cursor()
   -- NOTE: if action is running kill it and remove
   -- [running] from the actions's row in the window
   if executor.is_running(action.name) == true then
-    if executor.kill(name) == true then
+    if
+      executor.kill(name, function()
+        local l = "> " .. string.rep(" ", 37) .. "[killed]"
+        pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
+        pcall(
+          vim.api.nvim_buf_set_lines,
+          outter_buf,
+          linenr + 3,
+          linenr + 4,
+          false,
+          { l }
+        )
+        pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
+      end) == true
+    then
       local l = "> "
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
       pcall(
@@ -100,7 +117,37 @@ function window.select_action_under_cursor()
   end
   -- NOTE: if action is not running start it and add
   -- [running] to the actions's row in the window
-  if executor.start(name) == true then
+  local temp_win = nil
+  if prev_buf ~= nil then
+    local ok, v = pcall(vim.api.nvim_open_win, prev_buf, true, {
+      relative = "editor",
+      style = "minimal",
+      width = 1,
+      height = 1,
+      row = 1,
+      col = 1,
+      focusable = false,
+      noautocmd = true,
+    })
+    if ok then
+      temp_win = v
+    end
+  end
+  if
+    executor.start(name, function()
+      local l = "> " .. string.rep(" ", 37) .. "[done]"
+      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
+      pcall(
+        vim.api.nvim_buf_set_lines,
+        outter_buf,
+        linenr + 3,
+        linenr + 4,
+        false,
+        { l }
+      )
+      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
+    end) == true
+  then
     if executor.is_running(name) == true then
       local l = "> " .. string.rep(" ", 37) .. "[running]"
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
@@ -114,6 +161,9 @@ function window.select_action_under_cursor()
       )
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
     end
+  end
+  if temp_win ~= nil then
+    pcall(vim.api.nvim_win_close, temp_win, true)
   end
 end
 
@@ -252,6 +302,7 @@ set_window_options = function()
     buffer = buf,
     group = "ActionsWindow",
     callback = function()
+      prev_buf = nil
       vim.api.nvim_buf_delete(buf, {
         force = true,
       })
