@@ -186,6 +186,7 @@ function Action:get_filetypes()
           .. self.name
           .. "': Step's 'filetype' should be a string or a function returning a string!"
     end
+    table.insert(ft2, v)
   end
   return ft2, nil
 end
@@ -197,7 +198,7 @@ end
 ---@return table: A table of patterns.
 ---@return string|nil: An error that occured when fetching the patterns.
 function Action:get_patterns()
-  local pt = self.filetypes
+  local pt = self.patterns
   if pt == nil then
     return {}, nil
   end
@@ -219,6 +220,7 @@ function Action:get_patterns()
       return {},
         "Step's 'pattern' should be a string or a function returning a string!"
     end
+    table.insert(pt2, v)
   end
   return pt2, nil
 end
