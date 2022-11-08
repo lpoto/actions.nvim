@@ -275,9 +275,6 @@ function Step.create(o)
   if type(o.name) ~= "string" then
     return step, "A Step's 'name' should be a string!"
   end
-  if type(o.exe) ~= "string" then
-    return step, "A Step's 'exe' should be a string!"
-  end
   step.env = o.env
   step.clear_env = o.clear_env
   step.cwd = o.cwd
