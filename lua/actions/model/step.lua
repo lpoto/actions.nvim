@@ -25,12 +25,6 @@ function Step.create(o)
     return step, "A Step should be a table!"
   end
   step.name = o.name
-  if type(o.name) ~= "string" then
-    return step, "A Step's 'name' should be a string!"
-  end
-  if type(o.exe) ~= "string" then
-    return step, "A Step's 'exe' should be a string!"
-  end
   step.env = o.env
   step.clear_env = o.clear_env
   step.cwd = o.cwd
@@ -42,9 +36,21 @@ end
 
 ---Get the step's name.
 ---
----@return string
+---@return string|nil: The step's name
+---@return string|nil: An error that occured while fetching name
 function Step:get_name()
-  return self.name
+  local name = self.name
+  if name == nil then
+    return "", nil
+  end
+  if type(name) == "function" then
+    name = name()
+  end
+  if type(name) ~= "string" then
+    return "",
+      "Step's 'name' should be a string or a function returning a string!"
+  end
+  return name, nil
 end
 
 ---Get the step's current working directory. When the step is run,

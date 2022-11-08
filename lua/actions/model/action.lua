@@ -272,9 +272,6 @@ function Step.create(o)
     return step, "A Step should be a table!"
   end
   step.name = o.name
-  if type(o.name) ~= "string" then
-    return step, "A Step's 'name' should be a string!"
-  end
   step.env = o.env
   step.clear_env = o.clear_env
   step.cwd = o.cwd
