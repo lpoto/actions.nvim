@@ -87,21 +87,7 @@ function window.select_action_under_cursor()
   -- NOTE: if action is running kill it and remove
   -- [running] from the actions's row in the window
   if executor.is_running(action.name) == true then
-    if
-      executor.kill(name, function()
-        local l = "> " .. string.rep(" ", 37) .. "[killed]"
-        pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
-        pcall(
-          vim.api.nvim_buf_set_lines,
-          outter_buf,
-          linenr + 3,
-          linenr + 4,
-          false,
-          { l }
-        )
-        pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
-      end) == true
-    then
+    if executor.kill(name) == true then
       local l = "> "
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
       pcall(
