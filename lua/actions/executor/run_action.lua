@@ -6,8 +6,6 @@ local log = require "actions.log"
 ---@type table
 local running_actions = {}
 
-local open_temp_win
-
 local run = {}
 
 ---Returns the buffer name for the running action identified
@@ -40,52 +38,55 @@ end
 ---@return boolean: whether the actions started successfully
 ---TODO: this function should be refactored, split into multiple smaller functions.
 function run.run(action, prev_buf, on_exit)
-  ---@type number|nil: A temporary window with
-  ---buffer from which the action has been started oppened.
-  ---Fetch action's field from this window, so if the fields
-  ---are functions, they may be relative to current buffer.
-  local temp_win
-  if prev_buf ~= vim.fn.bufnr() then
-    temp_win = open_temp_win(prev_buf)
-  end
-
   ---@type string: Path to the output file
   local path = action:get_output_path()
 
-  ---NOTE: fetch the action's fields
+  ---@type table
+  local original_steps
+  ---@type table
+  local env
+  ---@type boolean|nil
+  local clear_env
+  ---@type string|nil
+  local cwd
+  ---@type string|nil
+  local err
 
-  local original_steps = action:get_steps()
+  ---fetch the action's fields
+  local function fetch_action_data()
+    original_steps = action:get_steps()
+    env, err = action:get_env()
+    if err ~= nil then
+      log.warn(err)
+    end
+
+    ---are cleared.
+    clear_env, err = action:get_clear_env()
+    if err ~= nil then
+      log.warn(err)
+    end
+
+    ---may be overriden by step's cwd
+    cwd, err = action:get_cwd()
+    if err ~= nil then
+      log.warn(err)
+    end
+  end
+
+  if prev_buf ~= nil and vim.fn.bufexists(prev_buf) then
+    --NOTE: fetch action data from the buffer from which the action
+    --has been called
+
+    vim.api.nvim_buf_call(prev_buf, fetch_action_data)
+  else
+    fetch_action_data()
+  end
 
   ---@type table: a copy of original steps
   local steps_copy = {}
   for _, step in ipairs(original_steps) do
     table.insert(steps_copy, step)
   end
-
-  local env, err = action:get_env()
-  if err ~= nil then
-    log.warn(err)
-  end
-
-  ---@type boolean|nil: Env variables not in action's env
-  ---are cleared.
-  local clear_env
-  clear_env, err = action:get_clear_env()
-  if err ~= nil then
-    log.warn(err)
-  end
-
-  ---@type string|nil: working directory of the actions
-  ---may be overriden by step's cwd
-  local cwd
-  cwd, err = action:get_cwd()
-  if err ~= nil then
-    log.warn(err)
-  end
-
-  ---NOTE: close the temporaty window, it will be oppened
-  ---again when fetching data for steps
-  pcall(vim.api.nvim_win_close, temp_win, true)
 
   run.write_output(path, { "> ACTION [" .. action.name .. "] START" }, true)
 
@@ -99,29 +100,75 @@ function run.run(action, prev_buf, on_exit)
     ---@type Step: a step to be run as a job
     local step = table.remove(steps, 1)
 
-    if prev_buf ~= vim.fn.bufnr() then
-      temp_win = open_temp_win(prev_buf)
-    end
-
     local step_name = step:get_name()
+
     log.debug("Running step: " .. step_name)
-    --
+
     ---@type string: executable of the job
     local exe = ""
-    exe, err = step:get_exe()
-    if err ~= nil then
-      log.error(err)
-      pcall(vim.api.nvim_win_close, temp_win, true)
+    ---@type table: arguments added to the exe
+    local args
+    ---@type string|nil: step's working directory
+    local step_cwd
+    ---@type table: step's env variables
+    local step_env
+    ---@type boolean|nil: step's working directory
+    local step_clear_env
+
+    --NOTE: primarily use step's fields, they override the
+    --action's fields. Use action's fields for those fields
+    --that are undefined in the step.
+
+    ---Fetch data for the step
+    ---@return boolean
+    local function get_step_data()
+      exe, err = step:get_exe()
+      if err ~= nil then
+        log.error(err)
+        return false
+      end
+      args, err = step:get_args()
+      if err ~= nil then
+        log.error(err)
+        return false
+      end
+
+      step_cwd, err = step:get_cwd()
+      if err ~= nil then
+        log.warn(err)
+      end
+      if step_cwd == nil then
+        step_cwd = cwd
+      end
+
+      step_env, err = step:get_env()
+      if err ~= nil then
+        log.warn(err)
+      end
+
+      step_clear_env, err = step:get_clear_env()
+      if err ~= nil then
+        log.warn(err)
+      end
+      return true
+    end
+
+    local continue = false
+    if prev_buf ~= nil and vim.fn.bufexists(prev_buf) == 1 then
+      --NOTE: fetch step data from the buffer from which the action
+      --has been called
+
+      vim.api.nvim_buf_call(prev_buf, function()
+        continue = get_step_data()
+      end)
+    else
+      continue = get_step_data()
+    end
+    if continue == false then
       run.clean(action, true, on_exit)
       return false
     end
-    ---@type table: arguments added to the exe
-    local args
-    args, err = step:get_args()
-    if err ~= nil then
-      log.error(err)
-      run.clean(action, true, on_exit)
-    end
+
     ---@type string|table: cmd sent to the job
     local cmd = exe
     if next(args) ~= nil then
@@ -132,36 +179,6 @@ function run.run(action, prev_buf, on_exit)
     end
 
     run.write_output(path, { "", "> STEP [" .. step_name .. "]", "", "" })
-
-    --NOTE: primarily use step's fields, they override the
-    --action's fields. Use action's fields for those fields
-    --that are undefined in the step.
-
-    ---@type string|nil: step's working directory
-    local step_cwd
-    step_cwd, err = step:get_cwd()
-    if err ~= nil then
-      log.warn(err)
-    end
-    if step_cwd == nil then
-      step_cwd = cwd
-    end
-
-    ---@type table|nil: step's env variables
-    local step_env
-    step_env, err = step:get_env()
-    if err ~= nil then
-      log.warn(err)
-    end
-
-    ---@type boolean|nil: step's working directory
-    local step_clear_env
-    step_clear_env, err = step:get_clear_env()
-    if err ~= nil then
-      log.warn(err)
-    end
-
-    pcall(vim.api.nvim_win_close, temp_win, true)
 
     if step_clear_env ~= true then
       local env3 = {}
@@ -177,12 +194,14 @@ function run.run(action, prev_buf, on_exit)
       step_clear_env = clear_env
     end
 
-    if next(step_env) == nil then
-      step_env = nil
+    ---@type table|nil
+    local step_env2 = nil
+    if next(step_env) ~= nil then
+      step_env2 = step_env
     end
     local ok, started_job = pcall(vim.fn.jobstart, cmd, {
       detach = false,
-      env = step_env,
+      env = step_env2,
       clear_env = step_clear_env,
       cwd = step_cwd,
       on_stderr = function(_, d)
@@ -313,34 +332,6 @@ function run.write_output(path, lines, first)
   end
 
   return true
-end
-
----Open a 1x1 temporary window
----
----@param buf number?: the number of a buffer
----@return number|nil: id of the oppened window, nil on failure
-open_temp_win = function(buf)
-  if buf == nil then
-    return
-  end
-  local ok, v = pcall(vim.fn.bufexists, buf)
-  if ok == false or v ~= 1 then
-    return
-  end
-  ok, v = pcall(vim.api.nvim_open_win, buf, true, {
-    relative = "editor",
-    style = "minimal",
-    width = 1,
-    height = 1,
-    row = 1,
-    col = 1,
-    focusable = false,
-    noautocmd = true,
-  })
-  if ok then
-    return v
-  end
-  return nil
 end
 
 return run
