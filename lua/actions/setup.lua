@@ -14,7 +14,7 @@ function setup.parse(o)
   if e ~= nil then
     return e
   end
-  setup.config = cfg
+  setup.config:add(cfg)
   return nil
 end
 
