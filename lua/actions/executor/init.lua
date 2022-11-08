@@ -1,4 +1,4 @@
-local log = require "actions.util.log"
+local log = require "actions.log"
 local setup = require "actions.setup"
 local run = require "actions.executor.run_action"
 local action_output_window = require "actions.window.action_output"
@@ -50,16 +50,15 @@ end
 ---Kill the action identified by the provided name
 ---
 ---@param name string: name of the action
----@param callback function:  function called after killing
 ---@return boolean: whether the action has been successfully killed
-function executor.kill(name, callback)
+function executor.kill(name)
   ---@type Action|nil
   local action = setup.get_action(name)
   if action == nil then
     log.warn("Action '" .. name .. "' does not exist!!")
     return false
   end
-  return run.stop(action, callback)
+  return run.stop(action)
 end
 
 return executor
