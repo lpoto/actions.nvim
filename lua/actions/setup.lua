@@ -26,8 +26,9 @@ end
 ---@return table: A table of actions.
 function setup.get_available()
   local actions_table = {}
+  local n = vim.fn.expand "%:t:r"
   for _, action in pairs(setup.config.actions) do
-    if action:is_available() then
+    if action:is_available() or action.name == n then
       table.insert(actions_table, action)
     end
   end

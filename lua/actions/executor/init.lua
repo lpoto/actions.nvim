@@ -50,7 +50,7 @@ end
 ---Kill the action identified by the provided name
 ---
 ---@param name string: name of the action
----@param callback function:  function called after killing
+---@param callback function?:  function called after killing
 ---@return boolean: whether the action has been successfully killed
 function executor.kill(name, callback)
   ---@type Action|nil

@@ -121,7 +121,7 @@ ready_output_buffer = function(buf)
   pcall(vim.api.nvim_buf_set_option, buf, "bufhidden", "wipe")
 
   if setup.config.before_displaying_output ~= nil then
-    pcall(setup.config.before_displaying_output, buf)
+    setup.config.before_displaying_output(buf)
   end
 end
 
@@ -131,6 +131,7 @@ ready_output_window = function(buf)
   pcall(vim.fn.matchadd, "Function", "^> ACTION \\[.*\\] SUCCESS$")
   pcall(vim.fn.matchadd, "Function", "^> ACTION \\[.*\\] START$")
   pcall(vim.fn.matchadd, "Constant", "^> STEP \\[.*\\]$")
+  pcall(vim.fn.matchadd, "Statement", "^> ACTION \\[.*\\] exited with code: ")
 
   pcall(vim.api.nvim_create_augroup, "ActionsWindow", {
     clear = true,

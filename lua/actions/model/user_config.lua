@@ -61,6 +61,7 @@ function User_config.create(o)
       if type(value) ~= "function" then
         return cfg, "before_displaying_output should be a function!"
       end
+      cfg.before_displaying_output = value
     else
       return cfg, "Invalid config field: " .. key
     end

@@ -87,6 +87,17 @@ function run.run(action, prev_buf, on_exit)
 
   local output_buf = vim.api.nvim_create_buf(false, true)
 
+  for i = 1, 10 do
+    local ok, _ = pcall(
+      vim.api.nvim_buf_set_name,
+      output_buf,
+      action:get_output_path() .. "__running" .. i
+    )
+    if ok == true then
+      break
+    end
+  end
+
   running_actions[action.name] = {
     buf = output_buf,
   }
@@ -235,7 +246,7 @@ function run.run(action, prev_buf, on_exit)
             "> ACTION ["
               .. action.name
               .. "] "
-              .. " exited with code: "
+              .. "exited with code: "
               .. code,
           })
           run.clean(action, true, on_exit)
@@ -297,7 +308,7 @@ end
 ---Stop a running action
 ---
 ---@param action Action: Action to be stopped
----@param callback function: Function to be called on successful stop
+---@param callback function?: Function to be called on successful stop
 function run.stop(action, callback)
   if running_actions[action.name] == nil then
     return false

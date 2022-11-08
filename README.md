@@ -41,9 +41,16 @@ require("actions").setup {
     before_displaying_output = function(bufnr)
       -- Example: to display the ouput of an action in a vertical split
       -- instead of in the current buffer.
-      vim.cmd('vsplit')
-      -- Could also add remappings for the output buffer here etc.:
-      vim.api.nvim_buf_set_keymap(bufnr, ...)
+      vim.cmd('silent vsplit')
+      -- Could also add remappings for the output buffer here etc.
+      -- Example: Kill action running in the output buffer with CTRL + c
+      vim.api.nvim_buf_set_keymap(
+        bufnr,
+        "n",
+        "<C-c>",
+        "<CMD>lua require('actions.executor').kill(vim.fn.expand('%:t:r'))<CR>",
+        {}
+      )
     end
   }
 }
