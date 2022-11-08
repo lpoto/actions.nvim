@@ -81,4 +81,23 @@ function User_config.create(o)
   return cfg, nil
 end
 
+---Merge the config with another config
+---
+---@param cfg User_config
+function User_config:add(cfg)
+  for k, v in pairs(cfg) do
+    if k == "actions" then
+      if self.actions == nil then
+        self.actions = v
+      else
+        for k2, v2 in pairs(v) do
+          self.actions[k2] = v2
+        end
+      end
+    else
+      self[k] = v
+    end
+  end
+end
+
 return User_config
