@@ -38,12 +38,14 @@ require("actions").setup {
         -- NOTE: example: command could be defined as `exe="echo 'Hello world!'"` or `exe="echo", args={"'Hello world!'"}`
       }
     },
-    before_displaying_output = function(bufnr)
+    before_displaying_output = function()
       -- Example: to display the ouput of an action in a vertical split
       -- instead of in the current buffer.
       vim.cmd('silent vsplit')
-      -- Could also add remappings for the output buffer here etc.
-      -- Example: Kill action running in the output buffer with CTRL + c
+    end,
+    after_displaying_output = function(bufnr)
+      -- Exmaple: to set remappings for the output buffer:
+      -- Kill action running in the output buffer with CTRL + c
       vim.api.nvim_buf_set_keymap(
         bufnr,
         "n",

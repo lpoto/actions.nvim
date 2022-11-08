@@ -7,11 +7,18 @@ local User_config = {
   ---A table of actions, with actions' names as keys
   actions = {},
   ---Function called before displaying the output buffer in the current window.
+  ---@return nil
+  ---@type function?
+  before_displaying_output = function()
+    pcall(vim.cmd, "vsplit")
+  end,
+  ---Function called after displaying the output buffer
   ---@param buf number?: The number of the output buffer
   ---@return nil
-  before_displaying_output = function(buf)
-    if vim.fn.bufexists(buf) then
-      pcall(vim.cmd, "vsplit")
+  ---@type function?
+  after_displaying_output = function(buf)
+    if vim.fn.bufexists(buf) ~= 1 then
+      return
     end
   end,
 }
@@ -62,6 +69,11 @@ function User_config.create(o)
         return cfg, "before_displaying_output should be a function!"
       end
       cfg.before_displaying_output = value
+    elseif key == "after_displaying_output" then
+      if type(value) ~= "function" then
+        return cfg, "after_displaying_output should be a function!"
+      end
+      cfg.after_displaying_output = value
     else
       return cfg, "Invalid config field: " .. key
     end
