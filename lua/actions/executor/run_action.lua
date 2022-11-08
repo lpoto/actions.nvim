@@ -1,4 +1,4 @@
-local log = require "actions.util.log"
+local log = require "actions.log"
 
 ---A table with actions' names as keys
 ---and tables as values. Values have fields

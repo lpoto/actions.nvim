@@ -15,7 +15,6 @@ function setup.parse(o)
     return e
   end
   setup.config = cfg
-  log.setup(cfg.log)
   return nil
 end
 

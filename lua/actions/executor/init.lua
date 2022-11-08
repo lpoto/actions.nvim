@@ -1,4 +1,4 @@
-local log = require "actions.util.log"
+local log = require "actions.log"
 local setup = require "actions.setup"
 local run = require "actions.executor.run_action"
 local action_output_window = require "actions.window.action_output"

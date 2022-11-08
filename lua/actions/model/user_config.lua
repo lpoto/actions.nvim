@@ -2,14 +2,17 @@ local Log_config = require "actions.model.log_config"
 local Action = require "actions.model.action"
 
 ---@class User_config
----@field actions table: A table of actions to add
----@field log table: vim.log.levels
----@field before_displaying_output function
 local User_config = {
   log = Log_config.default(),
+  ---A table of actions, with actions' names as keys
   actions = {},
-  before_displaying_output = function()
-    pcall(vim.cmd, "vsplit")
+  ---Function called before displaying the output buffer in the current window.
+  ---@param buf number?: The number of the output buffer
+  ---@return nil
+  before_displaying_output = function(buf)
+    if vim.fn.bufexists(buf) then
+      pcall(vim.cmd, "vsplit")
+    end
   end,
 }
 User_config.__index = User_config
