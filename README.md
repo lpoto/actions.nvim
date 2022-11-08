@@ -57,6 +57,16 @@ require("actions").setup {
   }
 }
 ```
+**NOTE** most fields in the setup may be functions that return the required type.
+Example:
+```lua
+cwd = function() return vim.fn.expand('%:p:h') end -- sets cwd as parent directory of the current file
+-- or even
+args = {
+  "-o",
+  function() return vim.fn.expand("%:p:r") .. ".out" end -- return {"-o", "current_file_name_without_extension.out"}
+}
+```
 
 ## Usage
 
