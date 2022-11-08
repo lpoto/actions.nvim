@@ -1,5 +1,6 @@
 local setup = require "actions.setup"
 local log = require "actions.log"
+local run = require "actions.executor.run_action"
 
 local ready_output_buffer
 local ready_output_window
@@ -66,7 +67,7 @@ function window.open(action)
 
   window.last_oppened = action.name
 
-  update_on_changes(path)
+  update_on_changes(action.name, path)
 end
 
 ---Reopens last oppened output window.
@@ -134,34 +135,38 @@ end
 
 ---If a buffer exists with the provided path oppened,
 ---refresh it every 500 ms
+---@parma action_name string
 ---@param path string: path to a file
-update_on_changes = function(path)
+update_on_changes = function(action_name, path)
   local watch_file
 
   local w = vim.loop.new_timer()
 
   local function on_change(file_path)
     w:stop()
-    local get_ls = vim.tbl_filter(function(b)
-      return vim.api.nvim_buf_is_valid(b)
-        and vim.api.nvim_buf_get_name(b) == file_path
-    end, vim.api.nvim_list_bufs())
 
-    if next(get_ls) == nil then
-      return
-    end
-    local _, buf = next(get_ls)
-    local ok1, e1, ok2, e2
-    ok1, e1 = pcall(vim.api.nvim_buf_call, buf, function()
-      ok2, e2 = pcall(vim.cmd, "silent e ")
-    end)
-    if ok1 == false then
-      log.warn(e1)
-      return
-    end
-    if ok2 == false then
-      log.warn(e2)
-      return
+    if run.is_running(action_name) then
+      local get_ls = vim.tbl_filter(function(b)
+        return vim.api.nvim_buf_is_valid(b)
+          and vim.api.nvim_buf_get_name(b) == file_path
+      end, vim.api.nvim_list_bufs())
+
+      if next(get_ls) == nil then
+        return
+      end
+      local _, buf = next(get_ls)
+      local ok1, e1, ok2, e2
+      ok1, e1 = pcall(vim.api.nvim_buf_call, buf, function()
+        ok2, e2 = pcall(vim.cmd, "silent e ")
+      end)
+      if ok1 == false then
+        log.warn(e1)
+        return
+      end
+      if ok2 == false then
+        log.warn(e2)
+        return
+      end
     end
     watch_file(file_path)
   end
