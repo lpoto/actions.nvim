@@ -1,32 +1,24 @@
-local log = require "actions.util.log"
-local Action = require "actions.model.action"
+local User_config = require "actions.model.user_config"
 
----A table of actions with their names as keys
----and definitions as values
----@type table
-local actions = {}
+local log = require "actions.util.log"
+
+---@type User_config
+local user_config = User_config.default()
 
 local setup = {}
-
----Verify the actions in the provided table,
----and add them to the setup.actions table on success.
----Notifies errors and warnings if they occur.
+---Parse the provided table into a User_config class
+---Use default config on any errors.
 ---
----@param actions_table table
+---@param o table
 ---@return nil
-function setup.add(actions_table)
-  if type(actions_table) ~= "table" then
-    log.error "Param 'actions_table' should be a table!"
+function setup.parse(o)
+  local cfg, e = User_config.create(o)
+  if e ~= nil then
+    log.error(e)
     return
   end
-  for name, o in pairs(actions_table) do
-    local action, err = Action.create(name, o)
-    if err ~= nil then
-      log.warn(err)
-    else
-      actions[action:get_name()] = action
-    end
-  end
+  user_config = cfg
+  log.setup(user_config.log)
 end
 
 ---Get a table of available actions.
@@ -37,7 +29,7 @@ end
 ---@return table: A table of actions.
 function setup.get_available()
   local actions_table = {}
-  for _, action in pairs(actions) do
+  for _, action in pairs(user_config.actions) do
     if action:is_available() then
       table.insert(actions_table, action)
     end
@@ -50,7 +42,14 @@ end
 ---@param name string: name of an action
 ---@return Action|nil: action identified by the provided name
 function setup.get_action(name)
-  return actions[name]
+  return user_config.actions[name]
+end
+
+---Get the log config from the user config
+---
+---@return Log_config
+function setup.get_log_config()
+  return user_config.log
 end
 
 return setup

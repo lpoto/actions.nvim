@@ -15,8 +15,8 @@ Step.__index = Step
 ---Create a step from a table
 ---
 ---@param o table
----@returns Step
----@returns string|nil: An error occured while creating a Step.
+---@return Step
+---@return string|nil: An error occured while creating a Step.
 function Step.create(o)
   ---@type Step
   local step = {}

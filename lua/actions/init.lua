@@ -2,13 +2,12 @@ local setup = require "actions.setup"
 
 local actions = {}
 
----Add actions in a table with their names as keys
----and their definitions as values.
+---Set up the plugin and add actions.
 ---
----@param actions_table table
+---@param user_config table
 ---@return nil
-function actions.setup(actions_table)
-  setup.add(actions_table)
+function actions.setup(user_config)
+  setup.parse(user_config)
 end
 
 ---Opens a window with all the available actions.
