@@ -1,12 +1,9 @@
-local run_action = require "actions.executor.run_action"
 local setup = require "actions.setup"
 local log = require "actions.log"
 
----@type number|nil: Buffer number of the oppened
-local oppened_buf = nil
-
 local ready_output_buffer
 local ready_output_window
+local update_on_changes
 
 local window = {}
 
@@ -26,66 +23,57 @@ function window.open(action)
     group = "ActionsWindow",
   })
 
-  local buf = run_action.get_running_action_buffer(action.name)
-
-  if buf == nil or vim.fn.bufexists(buf) ~= 1 then
-    local path = action:get_output_path()
-    local ok, v = pcall(vim.fn.filereadable, path)
-    if ok == false or v == nil then
-      log.warn("Action '" .. action.name .. "' has no output!")
-      return
-    end
-
-    --NOTE: check if buffer is alread loaded
-    -- if it is, open that one
-
-    local get_ls = vim.tbl_filter(function(b)
-      return vim.api.nvim_buf_is_valid(b)
-        and vim.api.nvim_buf_get_name(b) == path
-    end, vim.api.nvim_list_bufs())
-
-    if next(get_ls) ~= nil then
-      _, buf = next(get_ls)
-    else
-      buf = vim.api.nvim_create_buf(false, true)
-    end
-
-    ready_output_buffer(buf)
-
-    --NOTE: navigate to the output buffer
-
-    ok, v = pcall(vim.cmd, "silent buf " .. buf)
-    if ok == false then
-      log.error(v)
-      return
-    end
-
-    --NOTE: open the output file in the buffer
-
-    ok, v = pcall(vim.cmd, "find " .. path)
-    if ok == false then
-      log.error(v)
-      return
-    end
-  else
-    ready_output_buffer(buf)
-    local ok, v = pcall(vim.cmd, "silent buf " .. buf)
-    if ok == false then
-      log.error(v)
-      return
-    end
+  local path = action:get_output_path()
+  local ok, v = pcall(vim.fn.filereadable, path)
+  if ok == false or v == nil then
+    log.warn("Action '" .. action.name .. "' has no output!")
+    return
   end
 
+  --NOTE: check if buffer is alread loaded
+  -- if it is, open that one
+
+  local get_ls = vim.tbl_filter(function(b)
+    return vim.api.nvim_buf_is_valid(b)
+      and vim.api.nvim_buf_is_loaded(b)
+      and vim.api.nvim_buf_get_name(b) == path
+  end, vim.api.nvim_list_bufs())
+
+  if next(get_ls) ~= nil then
+    local _, loaded_buf = next(get_ls)
+    pcall(vim.api.nvim_buf_delete, loaded_buf, { force = true })
+  end
+
+  if setup.config.before_displaying_output ~= nil then
+    setup.config.before_displaying_output()
+  end
+
+  --NOTE: open the output file in the buffer
+
+  ok, v = pcall(vim.cmd, "find " .. path)
+  if ok == false then
+    log.error(v)
+    return
+  end
+  local buf = vim.fn.bufnr()
+
+  ready_output_buffer(buf)
   ready_output_window(buf)
 
-  oppened_buf = buf
+  if setup.config.after_displaying_output ~= nil then
+    setup.config.after_displaying_output(buf)
+  end
+
   window.last_oppened = action.name
+
+  update_on_changes(path)
 end
 
 ---Reopens last oppened output window.
 ---If there is any.
-function window.open_last()
-  if window.last_oppened == nil then
+function window.toggle_last()
+  local name = window.last_oppened
+  if name == nil then
     log.warn "There is no last oppened action output!"
     return
   end
@@ -94,22 +82,19 @@ function window.open_last()
     log.warn "There is no last oppened action output!"
     return
   end
-  window.open(action)
-end
+  local path = action:get_output_path()
+  local get_ls = vim.tbl_filter(function(b)
+    return vim.api.nvim_buf_is_valid(b)
+      and vim.api.nvim_buf_is_loaded(b)
+      and vim.api.nvim_buf_get_name(b) == path
+  end, vim.api.nvim_list_bufs())
 
----Reopens last oppened output window.
----If there is any.
-function window.toggle_last()
-  if
-    oppened_buf == nil
-    or vim.fn.bufexists(oppened_buf) ~= 1
-    or vim.fn.bufloaded(oppened_buf) ~= 1
-  then
-    window.open_last()
-  else
-    vim.api.nvim_buf_delete(oppened_buf, { force = true })
-    oppened_buf = nil
+  if next(get_ls) ~= nil then
+    local _, loaded_buf = next(get_ls)
+    pcall(vim.api.nvim_buf_delete, loaded_buf, { force = true })
+    return
   end
+  window.open(action)
 end
 
 ---@param buf number
@@ -118,11 +103,8 @@ ready_output_buffer = function(buf)
   pcall(vim.api.nvim_buf_set_option, buf, "modifiable", false)
   pcall(vim.api.nvim_buf_set_option, buf, "readonly", true)
   pcall(vim.api.nvim_buf_set_option, buf, "buflisted", false)
+  pcall(vim.api.nvim_buf_set_option, buf, "autoread", true)
   pcall(vim.api.nvim_buf_set_option, buf, "bufhidden", "wipe")
-
-  if setup.config.before_displaying_output ~= nil then
-    setup.config.before_displaying_output(buf)
-  end
 end
 
 ---@param buf number
@@ -140,9 +122,6 @@ ready_output_window = function(buf)
     buffer = buf,
     group = "ActionsWindow",
     command = "delmarks!",
-    callback = function()
-      oppened_buf = nil
-    end,
     once = true,
   })
 
@@ -151,6 +130,51 @@ ready_output_window = function(buf)
     0,
     { vim.api.nvim_buf_line_count(buf), 0 }
   )
+end
+
+---If a buffer exists with the provided path oppened,
+---refresh it every 500 ms
+---@param path string: path to a file
+update_on_changes = function(path)
+  local watch_file
+
+  local w = vim.loop.new_timer()
+
+  local function on_change(file_path)
+    w:stop()
+    local get_ls = vim.tbl_filter(function(b)
+      return vim.api.nvim_buf_is_valid(b)
+        and vim.api.nvim_buf_get_name(b) == file_path
+    end, vim.api.nvim_list_bufs())
+
+    if next(get_ls) == nil then
+      return
+    end
+    local _, buf = next(get_ls)
+    local ok1, e1, ok2, e2
+    ok1, e1 = pcall(vim.api.nvim_buf_call, buf, function()
+      ok2, e2 = pcall(vim.cmd, "silent e ")
+    end)
+    if ok1 == false then
+      log.warn(e1)
+      return
+    end
+    if ok2 == false then
+      log.warn(e2)
+      return
+    end
+    watch_file(file_path)
+  end
+  function watch_file(file_path)
+    w:start(
+      500,
+      0,
+      vim.schedule_wrap(function()
+        on_change(file_path)
+      end)
+    )
+  end
+  watch_file(path)
 end
 
 return window
