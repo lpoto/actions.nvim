@@ -10,13 +10,6 @@ local window = {}
 ---@type string|nil: Name of the last oppened action
 window.last_oppened = nil
 
----@type function|nil: Function called before oppening output
----buffer in the current window.
----Useful for changing windows before oppening the buffer etc.
-window.fn = function()
-  pcall(vim.cmd, "vsplit")
-end
-
 ---Open the output buffer for the provided
 ---action in the current window.
 ---
@@ -29,8 +22,8 @@ function window.open(action)
   pcall(vim.api.nvim_exec_autocmds, "BufLeave", {
     group = "ActionsWindow",
   })
-  if window.fn ~= nil and type(window.fn) == "function" then
-    pcall(window.fn)
+  if setup.config.before_displaying_output ~= nil then
+    pcall(setup.config.before_displaying_output)
   end
 
   local buf = run_action.get_running_action_buffer(action.name)

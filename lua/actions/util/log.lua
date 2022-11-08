@@ -1,48 +1,39 @@
-local Log_config = require "actions.model.log_config"
+local setup = require "actions.setup"
 
-local config = Log_config.default()
+---@param txt string: Text to log
+---@param level number: A vim.log.levels value
+local function notify(txt, level)
+  local config = setup.get_log_config()
+  if setup.config.log.silent == true or setup.config.log.level > level then
+    return
+  end
+  vim.notify(config.prefix .. ": " .. txt, level)
+end
 
 local log = {}
 
 ---Notify the provided text with debug level.
 ---@param txt string: Text to log
 function log.debug(txt)
-  if config.silent == true or config.level > vim.log.levels.DEBUG then
-    return
-  end
-  vim.notify(config.prefix .. ": " .. txt, vim.log.levels.DEBUG)
+  notify(txt, vim.log.levels.DEBUG)
 end
 
 ---Notify the provided text with info level.
 ---@param txt string: Text to log
 function log.info(txt)
-  if config.silent == true or config.level > vim.log.levels.INFO then
-    return
-  end
-  vim.notify(config.prefix .. ": " .. txt, vim.log.levels.INFO)
+  notify(txt, vim.log.levels.INFO)
 end
 
 ---Notify the provided text with warn level.
 ---@param txt string: Text to log
 function log.warn(txt)
-  if config.silent == true or config.level > vim.log.levels.WARN then
-    return
-  end
-  vim.notify(config.prefix .. ": " .. txt, vim.log.levels.WARN)
+  notify(txt, vim.log.levels.WARN)
 end
 
 ---Notify the provided text with error level.
 ---@param txt string: Text to log
 function log.error(txt)
-  if config.silent == true or config.level > vim.log.levels.ERROR then
-    return
-  end
-  vim.notify(config.prefix .. ": " .. txt, vim.log.levels.ERROR)
-end
-
----@param log_config Log_config
-function log.setup(log_config)
-  config = log_config
+  notify(txt, vim.log.levels.ERROR)
 end
 
 return log

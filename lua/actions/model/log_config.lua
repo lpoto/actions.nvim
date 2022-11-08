@@ -34,17 +34,17 @@ function Log_config.create(o)
   end
 
   for key, value in pairs(o) do
-    if key == "level" and value ~= nil then
+    if key == "level" then
       if type(value) ~= "number" then
         return cfg, "log.level should be a number!"
       end
       cfg.level = value
-    elseif key == "prefix" and value ~= nil then
+    elseif key == "prefix" then
       if type(value) ~= "string" then
         return cfg, "log.prefix should be a string!"
       end
       cfg.prefix = value
-    elseif key == "silent" and value ~= nil then
+    elseif key == "silent" then
       if type(value) ~= "boolean" then
         return cfg, "log.silent should be a boolean!"
       end
