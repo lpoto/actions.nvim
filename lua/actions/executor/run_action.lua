@@ -100,10 +100,8 @@ function run.run(action, prev_buf, on_exit)
     ---@type Step: a step to be run as a job
     local step = table.remove(steps, 1)
 
-    local step_name = step:get_name()
-
-    log.debug("Running step: " .. step_name)
-
+    ---@type string|nil
+    local step_name
     ---@type string: executable of the job
     local exe = ""
     ---@type table: arguments added to the exe
@@ -122,6 +120,12 @@ function run.run(action, prev_buf, on_exit)
     ---Fetch data for the step
     ---@return boolean
     local function get_step_data()
+      step_name, err = step:get_name()
+      if err ~= nil then
+        log.error(err)
+        return false
+      end
+
       exe, err = step:get_exe()
       if err ~= nil then
         log.error(err)
@@ -168,6 +172,8 @@ function run.run(action, prev_buf, on_exit)
       run.clean(action, true, on_exit)
       return false
     end
+
+    log.debug("Running step: " .. step_name)
 
     ---@type string|table: cmd sent to the job
     local cmd = exe
