@@ -215,6 +215,13 @@ set_outter_window_lines = function(width, actions)
     local l = "> "
     if executor.is_running(action.name) then
       l = l .. string.rep(" ", 37) .. "[running]"
+    else
+      local path = action:get_output_path()
+      print(path)
+      local ok, v = pcall(vim.fn.filereadable, path)
+      if ok == true and v == 1 then
+        l = l .. string.rep(" ", 37) .. "[output]"
+      end
     end
     table.insert(lines, l)
   end
