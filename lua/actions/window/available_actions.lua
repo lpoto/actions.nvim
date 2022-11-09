@@ -115,25 +115,7 @@ function window.select_action_under_cursor()
   -- [running] from the actions's row in the window
   -- (replace it with [killed])
   if executor.is_running(action.name) == true then
-    if executor.kill(name, prev_buf) ~= true then
-      return
-    end
-    --NOTE: make sure the buffer is modifiable before
-    --replacing any lines
-    pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
-    --NOTE: replace the [running] label with the [killed] label
-    local l = "> " .. string.rep(" ", 37) .. "[killed]"
-    pcall(
-      vim.api.nvim_buf_set_lines,
-      outter_buf,
-      linenr + 3,
-      linenr + 4,
-      false,
-      { l }
-    )
-    --NOTE: set the buffer back to not modifiable, so the
-    --user cannot change the text in the outter buffer
-    pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
+    executor.kill(name, prev_buf)
     return
   end
   --NOTE: the action was not yet running, so we may start it.
@@ -347,6 +329,8 @@ set_window_options = function()
     end,
     once = true,
   })
+  --NOTE: <Esc> closes the window by triggering
+  --the BufLeave autocmd for the actions buffer
   vim.api.nvim_buf_set_keymap(
     buf,
     "n",
@@ -358,6 +342,9 @@ set_window_options = function()
       noremap = true,
     }
   )
+  --NOTE: select the action under the cursor with <Enter>
+  --if the action is running this will kill it, otherwise
+  --it will kill it
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
@@ -366,20 +353,15 @@ set_window_options = function()
       .. ".select_action_under_cursor()<CR>",
     {}
   )
+  --NOTE: show the output of an action with 'o' (if there is any)
+  --this will close the actions window and oppen
+  --the output in the current window
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
     "o",
     "<CMD>lua require('actions.window.available_actions')"
       .. ".output_of_action_under_cursor()<CR>",
-    {}
-  )
-  vim.api.nvim_buf_set_keymap(
-    buf,
-    "",
-    "<CR>",
-    "<CMD>lua require('actions.window.available_actions')"
-      .. ".select_action_under_cursor()<CR>",
     {}
   )
 end
