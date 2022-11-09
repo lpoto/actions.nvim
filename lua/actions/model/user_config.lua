@@ -1,5 +1,4 @@
 local Log_config = require "actions.model.log_config"
-local Action = require "actions.model.action"
 
 ---@class User_config
 local User_config = {
@@ -57,11 +56,13 @@ function User_config.create(o)
       end
       local actions = {}
       for k, v in pairs(value) do
-        local action, err = Action.create(k, v)
-        if err ~= nil then
-          return cfg, err
+        if type(k) ~= "string" or string.len(k) == 0 then
+          return cfg, "Action should have a non-empty string name!"
         end
-        actions[action:get_name()] = action
+        if type(v) ~= "function" then
+          return cfg, "Action '" .. k .. "'s config should be a function!"
+        end
+        actions[k] = v
       end
       cfg.actions = actions
     elseif key == "before_displaying_output" then

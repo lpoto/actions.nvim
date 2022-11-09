@@ -25,9 +25,11 @@ end
 ---@return boolean: whether the action was started successfully
 function executor.start(name, prev_buf, on_exit)
   ---@type Action|nil
-  local action = setup.get_action(name)
-  if action == nil then
-    log.warn("Action '" .. name .. "' does not exist!!")
+  local action, err = setup.get_action(name, prev_buf)
+  if err ~= nil then
+    log.warn(err)
+    return false
+  elseif action == nil then
     return false
   end
   if executor.is_running(action.name) == true then
@@ -38,7 +40,7 @@ function executor.start(name, prev_buf, on_exit)
     log.warn("Can only run " .. MAX_RUNNING_JOBS .. " actions at once!")
     return false
   end
-  if run.run(action, prev_buf, on_exit) == true then
+  if run.run(action, on_exit) == true then
     if action_output_window.last_oppened == nil then
       action_output_window.last_oppened = name
     end
@@ -50,12 +52,15 @@ end
 ---Kill the action identified by the provided name
 ---
 ---@param name string: name of the action
+---@param prev_buf number?
 ---@return boolean: whether the action has been successfully killed
-function executor.kill(name)
+function executor.kill(name, prev_buf)
   ---@type Action|nil
-  local action = setup.get_action(name)
-  if action == nil then
-    log.warn("Action '" .. name .. "' does not exist!!")
+  local action, err = setup.get_action(name, prev_buf)
+  if err ~= nil then
+    log.warn(err)
+    return false
+  elseif action == nil then
     return false
   end
   return run.stop(action)
