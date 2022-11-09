@@ -161,6 +161,16 @@ update_on_changes = function(path, name)
         return
       end
       local _, buf = next(get_ls)
+      -- NOTE: try to move cursor to the bottom of the window
+      local ok, winid = pcall(vim.fn.bufwinid, buf)
+      local line_count, cursor_pos
+      if ok == false then
+        log.warn(winid)
+      else
+        local _, lc = pcall(vim.api.nvim_buf_line_count, buf)
+        local _, cp = pcall(vim.api.nvim_win_get_cursor, winid)
+        line_count, cursor_pos = lc, cp
+      end
       local ok1, e1, ok2, e2
       ok1, e1 = pcall(vim.api.nvim_buf_call, buf, function()
         ok2, e2 = pcall(vim.fn.execute, "e", true)
@@ -173,19 +183,12 @@ update_on_changes = function(path, name)
         log.warn(e2)
         return
       end
-      -- NOTE: try to move cursor to the bottom of the window
-      local ok, winid = pcall(vim.fn.bufwinid, buf)
-      if ok == false then
-        log.warn(winid)
-        return
+      if type(cursor_pos) == "table" and cursor_pos[1] == line_count then
+        ok, line_count = pcall(vim.api.nvim_buf_line_count, buf)
+        if ok ~= false then
+          pcall(vim.api.nvim_win_set_cursor, winid, { line_count, 0 })
+        end
       end
-      local line_count
-      ok, line_count = pcall(vim.api.nvim_buf_line_count, buf)
-      if ok == false then
-        log.warn(winid)
-        return
-      end
-      pcall(vim.api.nvim_win_set_cursor, winid, { line_count, 0 })
     end
     watch_file(file_path)
   end
