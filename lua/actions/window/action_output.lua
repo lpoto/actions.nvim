@@ -173,6 +173,19 @@ update_on_changes = function(path, name)
         log.warn(e2)
         return
       end
+      -- NOTE: try to move cursor to the bottom of the window
+      local ok, winid = pcall(vim.fn.bufwinid, buf)
+      if ok == false then
+        log.warn(winid)
+        return
+      end
+      local line_count
+      ok, line_count = pcall(vim.api.nvim_buf_line_count, buf)
+      if ok == false then
+        log.warn(winid)
+        return
+      end
+      pcall(vim.api.nvim_win_set_cursor, winid, { line_count, 0 })
     end
     watch_file(file_path)
   end
