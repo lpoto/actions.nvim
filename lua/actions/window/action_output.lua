@@ -19,16 +19,16 @@ function window.open(action)
     return
   end
 
-  pcall(vim.api.nvim_exec_autocmds, "BufLeave", {
-    group = "ActionsWindow",
-  })
-
   local path = action:get_output_path()
   local ok, v = pcall(vim.fn.filereadable, path)
-  if ok == false or v == nil then
+  if ok == false or v ~= 1 then
     log.warn("Action '" .. action.name .. "' has no output!")
     return
   end
+
+  pcall(vim.api.nvim_exec_autocmds, "BufLeave", {
+    group = "ActionsWindow",
+  })
 
   --NOTE: check if buffer is alread loaded
   -- if it is, open that one
