@@ -72,7 +72,7 @@ function run.run(action, on_exit)
   ---@return boolean
   local function run_steps_recursively(steps)
     if next(steps) == nil then
-      run.clean(action, true, on_exit)
+      run.clean(action, true, on_exit, -1)
       return false
     end
     ---@type Step: a step to be run as a job
@@ -153,7 +153,7 @@ function run.run(action, on_exit)
           end
         end
         if next(s) ~= nil and run.write_output(path, s) == false then
-          run.clean(action, true, on_exit)
+          run.clean(action, true, on_exit, -1)
         end
       end,
       on_stdout = function(_, d)
@@ -169,7 +169,7 @@ function run.run(action, on_exit)
           end
         end
         if next(s) ~= nil and run.write_output(path, s) == false then
-          run.clean(action, true, on_exit)
+          run.clean(action, true, on_exit, -1)
         end
       end,
       on_exit = function(_, code)
@@ -182,7 +182,7 @@ function run.run(action, on_exit)
               .. "exited with code: "
               .. code,
           })
-          run.clean(action, true, on_exit)
+          run.clean(action, true, on_exit, code)
           return
         end
         if next(steps) ~= nil then
@@ -192,7 +192,7 @@ function run.run(action, on_exit)
           path,
           { "", "> ACTION [" .. action.name .. "] SUCCESS" }
         )
-        run.clean(action, true, on_exit)
+        run.clean(action, true, on_exit, code)
       end,
     })
     if ok == true then
@@ -200,7 +200,7 @@ function run.run(action, on_exit)
       return true
     end
     log.warn(started_job)
-    run.clean(action, true, on_exit)
+    run.clean(action, true, on_exit, -1)
     return false
   end
 
@@ -214,8 +214,9 @@ end
 ---@param action Action
 ---@param clean? boolean: Whether to remove action from running_actions
 ---@param callback function?: Function to call after killing
+---@param exit_code number?: Action's exit code
 ---@return boolean: whether successfully killed
-function run.clean(action, clean, callback)
+function run.clean(action, clean, callback, exit_code)
   if running_actions[action.name] == nil then
     return false
   end
@@ -225,7 +226,7 @@ function run.clean(action, clean, callback)
     running_actions[action.name] = nil
   end
   if callback ~= nil then
-    pcall(callback)
+    pcall(callback, exit_code)
   end
   return true
 end

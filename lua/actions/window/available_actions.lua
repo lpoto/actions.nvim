@@ -3,12 +3,20 @@ local setup = require "actions.setup"
 local executor = require "actions.executor"
 local output_window = require "actions.window.action_output"
 
-local prev_buf = nil
-local buf = nil
-local outter_buf = nil
-
 local window = {}
 
+---@type number?: The buffer from which the actions buffer
+---was oppened
+local prev_buf = nil
+---@type number?: Currently oppened actions buffer
+local buf = nil
+---@type number?: The currently oppened
+--actions buffer's background buffer
+local outter_buf = nil
+
+--utility functions to handle the
+--creation and the appearance of the
+--actions window and buffer
 local set_window_lines
 local set_outter_window_lines
 local set_window_options
@@ -38,10 +46,19 @@ function window.open()
     return -1
   end
 
+  --NOTE: oppene 2 floating windows, the outter window
+  --contains the border,the instructions text and the
+  --action's labels, while the inner window contains
+  --only the actions' names.
+  --User may only navigate the inner window.
+
   local width = 50
   local height = 30
   local row = vim.o.lines / 2 - height / 2
   local col = vim.o.columns / 2 - width / 2
+
+  --NOTE: make sure that both windows are closed
+  --when the inner window loses focus
 
   outter_buf = vim.api.nvim_create_buf(false, true)
   buf = vim.api.nvim_create_buf(false, true)
@@ -96,25 +113,55 @@ function window.select_action_under_cursor()
   end
   -- NOTE: if action is running kill it and remove
   -- [running] from the actions's row in the window
+  -- (replace it with [killed])
   if executor.is_running(action.name) == true then
-    if executor.kill(name, prev_buf) == true then
-      local l = "> "
-      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
-      pcall(
-        vim.api.nvim_buf_set_lines,
-        outter_buf,
-        linenr + 3,
-        linenr + 4,
-        false,
-        { l }
-      )
-      pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
+    if executor.kill(name, prev_buf) ~= true then
+      return
     end
+    --NOTE: make sure the buffer is modifiable before
+    --replacing any lines
+    pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
+    --NOTE: replace the [running] label with the [killed] label
+    local l = "> " .. string.rep(" ", 37) .. "[killed]"
+    pcall(
+      vim.api.nvim_buf_set_lines,
+      outter_buf,
+      linenr + 3,
+      linenr + 4,
+      false,
+      { l }
+    )
+    --NOTE: set the buffer back to not modifiable, so the
+    --user cannot change the text in the outter buffer
+    pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
     return
   end
+  --NOTE: the action was not yet running, so we may start it.
+  --Pass a callback function to the executor, and replace
+  --the [running] label on finish.
   if
-    executor.start(name, prev_buf, function()
-      local l = "> " .. string.rep(" ", 37) .. "[done]"
+    executor.start(name, prev_buf, function(exit_code)
+      --NOTE: set output label based on the exit code of
+      --the action's job.
+      --Use [done] as default label
+      local label = "[done]"
+      if exit_code == 0 then
+        --NOTE: action exited with code 0, therefore the
+        --job was successful
+        label = "[success]"
+      elseif exit_code == -1 then
+        --NOTE: exit_code -1 means an error occured while running the job
+        --(in execution of the job, not in the program itself)
+        label = "[error]"
+      elseif type(exit_code) == "number" and exit_code > 0 then
+        --NOTE: The action exited with an error code
+        --which means there is an error in the program itself, not
+        --in the execution of the job
+        label = "[exit]"
+      end
+      local l = "> " .. string.rep(" ", 37) .. label
+      --NOTE: make sure the buffer is modifiable before
+      --replacing text
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
       pcall(
         vim.api.nvim_buf_set_lines,
@@ -127,8 +174,12 @@ function window.select_action_under_cursor()
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
     end) == true
   then
+    --NOTE: the executor successfully started the job, so
+    --add the [running] label to the actino.
     if executor.is_running(name) == true then
       local l = "> " .. string.rep(" ", 37) .. "[running]"
+      --NOTE: make sure the buffer is modifiable before
+      --replacing any lines
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
       pcall(
         vim.api.nvim_buf_set_lines,
