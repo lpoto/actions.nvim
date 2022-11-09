@@ -20,14 +20,23 @@ local set_outter_window_highlights
 ---
 ---@return number: the oppened buffer number, -1 on failure
 function window.open()
-  local actions = setup.get_available()
+  local cur_buf = vim.fn.bufnr()
+  local buf_name = vim.api.nvim_buf_get_name(cur_buf)
+  local match_against = vim.fn.stdpath "data" .. "/actions_output/"
+  if string.find(buf_name, match_against) == nil then
+    prev_buf = vim.fn.bufnr()
+  end
+
+  local actions, err = setup.get_available(prev_buf)
+  if err ~= nil then
+    log.warn(err)
+    return -1
+  end
 
   if actions == nil or next(actions) == nil then
     log.warn "There are no available actions"
     return -1
   end
-
-  prev_buf = vim.fn.bufnr()
 
   local width = 50
   local height = 30
@@ -78,16 +87,17 @@ function window.select_action_under_cursor()
   end
   local linenr = vim.fn.line "."
   local name = vim.fn.getline(linenr)
-  ---@type Action|nil
-  local action = setup.get_action(name)
-  if action == nil then
-    log.warn("Action '" .. name .. "' does not exist!")
+  local action, err = setup.get_action(name, prev_buf)
+  if err ~= nil then
+    log.warn(err)
+    return
+  elseif action == nil then
     return
   end
   -- NOTE: if action is running kill it and remove
   -- [running] from the actions's row in the window
   if executor.is_running(action.name) == true then
-    if executor.kill(name) == true then
+    if executor.kill(name, prev_buf) == true then
       local l = "> "
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
       pcall(
@@ -142,10 +152,12 @@ function window.output_of_action_under_cursor()
   end
   local linenr = vim.fn.line "."
   local name = vim.fn.getline(linenr)
-  ---@type Action|nil
-  local action = setup.get_action(name)
+  local action, err = setup.get_action(name, prev_buf)
+  if err ~= nil then
+    log.warn(err)
+    return
+  end
   if action == nil then
-    log.warn("Action '" .. name .. "' does not exist!")
     return
   end
   output_window.open(action)
@@ -168,7 +180,7 @@ set_window_lines = function(actions)
 
   local lines = {}
   for _, action in ipairs(actions) do
-    local l = action:get_name()
+    local l = action.name
     table.insert(lines, l)
   end
   vim.api.nvim_buf_set_lines(
@@ -268,7 +280,6 @@ set_window_options = function()
     buffer = buf,
     group = "ActionsWindow",
     callback = function()
-      prev_buf = nil
       vim.api.nvim_buf_delete(buf, {
         force = true,
       })

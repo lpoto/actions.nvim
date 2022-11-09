@@ -35,11 +35,10 @@ function run.get_running_actions_count()
 end
 
 ---@param action Action: action to be run
----@param prev_buf number?: parent buffer from which the action has been started
 ---@param on_exit function: A function called when a started action exits.
 ---@return boolean: whether the actions started successfully
 ---TODO: this function should be refactored, split into multiple smaller functions.
-function run.run(action, prev_buf, on_exit)
+function run.run(action, on_exit)
   ---@type string: Path to the output file
   local path = action:get_output_path()
 
@@ -50,45 +49,16 @@ function run.run(action, prev_buf, on_exit)
   end
 
   ---@type table
-  local original_steps
+  local original_steps = action.steps
   ---@type table
-  local env
+  local env = {}
+  if action.env ~= nil then
+    env = action.env
+  end
   ---@type boolean|nil
-  local clear_env
+  local clear_env = action.clear_env
   ---@type string|nil
-  local cwd
-  ---@type string|nil
-  local err
-
-  ---fetch the action's fields
-  local function fetch_action_data()
-    original_steps = action:get_steps()
-    env, err = action:get_env()
-    if err ~= nil then
-      log.warn(err)
-    end
-
-    ---are cleared.
-    clear_env, err = action:get_clear_env()
-    if err ~= nil then
-      log.warn(err)
-    end
-
-    ---may be overriden by step's cwd
-    cwd, err = action:get_cwd()
-    if err ~= nil then
-      log.warn(err)
-    end
-  end
-
-  if prev_buf ~= nil and vim.fn.bufexists(prev_buf) then
-    --NOTE: fetch action data from the buffer from which the action
-    --has been called
-
-    vim.api.nvim_buf_call(prev_buf, fetch_action_data)
-  else
-    fetch_action_data()
-  end
+  local cwd = action.cwd
 
   ---@type table: a copy of original steps
   local steps_copy = {}
@@ -108,84 +78,31 @@ function run.run(action, prev_buf, on_exit)
     ---@type Step: a step to be run as a job
     local step = table.remove(steps, 1)
 
-    ---@type string|nil
-    local step_name
+    ---@type string
+    local step_name = step.name
     ---@type string: executable of the job
-    local exe = ""
-    ---@type table: arguments added to the exe
-    local args
+    local exe = step.exe
+    ---@type table|nil: arguments added to the exe
+    local args = step.args
     ---@type string|nil: step's working directory
-    local step_cwd
+    local step_cwd = step.cwd
     ---@type table: step's env variables
-    local step_env
+    local step_env = {}
+    if step.env ~= nil then
+      step_env = step.env
+    end
     ---@type boolean|nil: step's working directory
-    local step_clear_env
+    local step_clear_env = step.clear_env
 
     --NOTE: primarily use step's fields, they override the
     --action's fields. Use action's fields for those fields
     --that are undefined in the step.
 
-    ---Fetch data for the step
-    ---@return boolean
-    local function get_step_data()
-      step_name, err = step:get_name()
-      if err ~= nil then
-        log.error(err)
-        return false
-      end
-
-      exe, err = step:get_exe()
-      if err ~= nil then
-        log.error(err)
-        return false
-      end
-      args, err = step:get_args()
-      if err ~= nil then
-        log.error(err)
-        return false
-      end
-
-      step_cwd, err = step:get_cwd()
-      if err ~= nil then
-        log.warn(err)
-      end
-      if step_cwd == nil then
-        step_cwd = cwd
-      end
-
-      step_env, err = step:get_env()
-      if err ~= nil then
-        log.warn(err)
-      end
-
-      step_clear_env, err = step:get_clear_env()
-      if err ~= nil then
-        log.warn(err)
-      end
-      return true
-    end
-
-    local continue = false
-    if prev_buf ~= nil and vim.fn.bufexists(prev_buf) == 1 then
-      --NOTE: fetch step data from the buffer from which the action
-      --has been called
-
-      vim.api.nvim_buf_call(prev_buf, function()
-        continue = get_step_data()
-      end)
-    else
-      continue = get_step_data()
-    end
-    if continue == false then
-      run.clean(action, true, on_exit)
-      return false
-    end
-
     log.debug("Running step: " .. step_name)
 
     ---@type string|table: cmd sent to the job
     local cmd = exe
-    if next(args) ~= nil then
+    if args ~= nil and next(args) ~= nil then
       cmd = { exe }
       for _, arg in ipairs(args) do
         table.insert(cmd, arg)
@@ -208,9 +125,14 @@ function run.run(action, prev_buf, on_exit)
       step_clear_env = clear_env
     end
 
+    if step_cwd == nil then
+      step_cwd = cwd
+    end
+
     ---@type table|nil
     local step_env2 = nil
-    if next(step_env) ~= nil then
+
+    if step_env ~= nil and next(step_env) ~= nil then
       step_env2 = step_env
     end
     local ok, started_job = pcall(vim.fn.jobstart, cmd, {

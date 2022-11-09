@@ -78,9 +78,11 @@ function window.toggle_last()
     log.warn "There is no last oppened action output!"
     return
   end
-  local action = setup.get_action(window.last_oppened)
-  if action == nil then
-    log.warn "There is no last oppened action output!"
+  local action, err = setup.get_action(window.last_oppened)
+  if err ~= nil then
+    log.warn(err)
+    return
+  elseif action == nil then
     return
   end
   local path = action:get_output_path()
