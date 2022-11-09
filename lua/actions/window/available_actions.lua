@@ -81,8 +81,8 @@ function window.open()
     relative = "editor",
     style = "minimal",
     width = width - 13,
-    height = height - 5,
-    row = row + 5,
+    height = height - 6,
+    row = row + 6,
     col = col + 3,
     noautocmd = true,
     --border = "rounded",
@@ -148,8 +148,8 @@ function window.select_action_under_cursor()
       pcall(
         vim.api.nvim_buf_set_lines,
         outter_buf,
-        linenr + 3,
         linenr + 4,
+        linenr + 5,
         false,
         { l }
       )
@@ -166,14 +166,58 @@ function window.select_action_under_cursor()
       pcall(
         vim.api.nvim_buf_set_lines,
         outter_buf,
-        linenr + 3,
         linenr + 4,
+        linenr + 5,
         false,
         { l }
       )
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
     end
   end
+end
+
+---Reads the name of the actions in the line under the cursor.
+---Displays the current definition of the action in the command line.
+---NOTE: the displayed definition may differ based on the buffer
+---the actions window was oppened from, but it is the same as the one
+---that would be used for execution.
+function window.definition_of_action_under_cursor()
+  local bufnr = vim.fn.bufnr()
+  if buf ~= bufnr then
+    return
+  end
+  local linenr = vim.fn.line "."
+  local name = vim.fn.getline(linenr)
+  local action, err = setup.get_action(name, prev_buf)
+  if err ~= nil then
+    log.warn(err)
+    return
+  end
+  if action == nil then
+    return
+  end
+  --NOTE: recursively print the current definition
+  --of the action
+  --NOTE: displayed fields are the ones that would be used
+  --for the execution
+  print "action: "
+  local function tprint(tbl, indent)
+    if not indent then
+      indent = 0
+    end
+    for k, v in pairs(tbl) do
+      local formatting = string.rep("  ", indent) .. k .. ": "
+      if type(v) == "table" then
+        print(formatting)
+        tprint(v, indent + 1)
+      elseif type(v) == "boolean" then
+        print(formatting .. tostring(v))
+      else
+        print(formatting .. v)
+      end
+    end
+  end
+  tprint(action, 1)
 end
 
 ---Reads the name of the actions in the line under the cursor.
@@ -242,6 +286,7 @@ set_outter_window_lines = function(width, actions)
     " Run an action with: '<ENTER>'",
     " Kill a running action with: '<ENTER>'",
     " See the output of an action with: 'o'",
+    " See the action's definition with: 'd'",
     string.rep("-", width),
   }
   for _, action in ipairs(actions) do
@@ -362,6 +407,15 @@ set_window_options = function()
     "o",
     "<CMD>lua require('actions.window.available_actions')"
       .. ".output_of_action_under_cursor()<CR>",
+    {}
+  )
+  --NOTE: show the definition of an action with 'd'
+  vim.api.nvim_buf_set_keymap(
+    buf,
+    "",
+    "d",
+    "<CMD>lua require('actions.window.available_actions')"
+      .. ".definition_of_action_under_cursor()<CR>",
     {}
   )
 end
