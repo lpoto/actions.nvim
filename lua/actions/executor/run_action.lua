@@ -1,5 +1,7 @@
 local log = require "actions.log"
 
+local create_output_file
+
 ---A table with actions' names as keys
 ---and their job ids as values
 ---
@@ -40,6 +42,12 @@ end
 function run.run(action, prev_buf, on_exit)
   ---@type string: Path to the output file
   local path = action:get_output_path()
+
+  --NOTE: make sure the output directory for the
+  --output file exists
+  if create_output_file(path) == false then
+    return false
+  end
 
   ---@type table
   local original_steps
@@ -337,6 +345,65 @@ function run.write_output(path, lines, first)
     return false
   end
 
+  return true
+end
+
+---Check if the output file exists, if it does not, create it with
+---all its parent directories.
+---
+---@param output_file_path string: Path to the output file
+---@return boolean: Whether the file exists, or was successfully created.
+create_output_file = function(output_file_path)
+  --NOTE: check if the provided file exists
+  local ok, v = pcall(vim.fn.filereadable, output_file_path)
+  if ok == false then
+    log.warn(v)
+    return false
+  end
+  if v == 1 then
+    --NOTE: file exists
+    ok, v = pcall(vim.fn.filewritable, output_file_path)
+    if v ~= 1 then
+      --NOTE: Check whether the file is writable
+      log.warn("File '" .. output_file_path .. "' is not writable!")
+      return false
+    end
+    return true
+  end
+  --NOTE: the file does not exist, first check
+  --if it's parent directory exists
+  local dirname
+  ok, dirname = pcall(vim.fs.dirname, output_file_path)
+  if ok == false then
+    log.warn(dirname)
+    return false
+  end
+  ok, v = pcall(vim.fs.dir, dirname)
+  if ok == false then
+    log.warn(v)
+    return false
+  end
+  --NOTE: try to create the parent directory with
+  --all it's subdirectories in the path
+  --NOTE: this will silently exit if it already exists
+  ok, v = pcall(vim.fn.mkdir, dirname, "p")
+  if ok == false then
+    log.warn(v)
+    return false
+  end
+  if v ~= 1 then
+    return false
+  end
+  --NOTE: now try to create the missing file
+  ok, v = pcall(io.open, output_file_path, "w")
+  if ok == false and type(v) == "string" then
+    log.warn(v)
+    return false
+  end
+  if v == nil then
+    return false
+  end
+  pcall(v.close, v)
   return true
 end
 

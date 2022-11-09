@@ -41,7 +41,7 @@ require("actions").setup {
     before_displaying_output = function()
       -- Example: to display the ouput of an action in a vertical split
       -- instead of in the current buffer.
-      vim.cmd('silent vsplit')
+      vim.fn.execute('vsplit', true)
     end,
     after_displaying_output = function(bufnr)
       -- Exmaple: to set remappings for the output buffer:

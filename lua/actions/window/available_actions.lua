@@ -213,7 +213,7 @@ set_outter_window_lines = function(width, actions)
     false,
     lines
   )
-  vim.cmd "silent normal 6j"
+  vim.fn.execute("normal 6j", true)
 
   vim.api.nvim_buf_set_option(outter_buf, "modifiable", false)
 end
