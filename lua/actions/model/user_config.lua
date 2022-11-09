@@ -10,7 +10,7 @@ local User_config = {
   ---@return nil
   ---@type function?
   before_displaying_output = function()
-    pcall(vim.cmd, "vsplit")
+    pcall(vim.execute, "vsplit", true)
   end,
   ---Function called after displaying the output buffer
   ---@param buf number?: The number of the output buffer

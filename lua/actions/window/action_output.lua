@@ -50,7 +50,7 @@ function window.open(action)
 
   --NOTE: open the output file in the buffer
 
-  ok, v = pcall(vim.cmd, "find " .. path)
+  ok, v = pcall(vim.fn.execute, "find " .. path)
   if ok == false then
     log.error(v)
     return
@@ -153,7 +153,7 @@ update_on_changes = function(path)
     local _, buf = next(get_ls)
     local ok1, e1, ok2, e2
     ok1, e1 = pcall(vim.api.nvim_buf_call, buf, function()
-      ok2, e2 = pcall(vim.cmd, "silent e ")
+      ok2, e2 = pcall(vim.fn.execute, "e", true)
     end)
     if ok1 == false then
       log.warn(e1)
