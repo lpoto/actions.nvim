@@ -20,7 +20,9 @@ require("actions").setup {
     prefix = "Custom-Prefix", -- default: "Actions.nvim"
   },
   actions = {
-    example_action = {
+    -- NOTE: action configs are functions that are called when running the actions
+    example_action = function() 
+    return {
       filetypes = {}, -- a list of filetypes in which the action is available (optional)
       patterns = {}, -- a list of patterns, action is only available in files that match a pattern (optional)
       cwd = "<valid-directory-path>", -- A directory in which the action will run (optinal)
@@ -37,6 +39,7 @@ require("actions").setup {
         args = {}, -- A table of arguments added to `exe` (optional)
         -- NOTE: example: command could be defined as `exe="echo 'Hello world!'"` or `exe="echo", args={"'Hello world!'"}`
       }
+      end,
     },
     before_displaying_output = function()
       -- Example: to display the ouput of an action in a vertical split
@@ -55,16 +58,6 @@ require("actions").setup {
       )
     end
   }
-}
-```
-**NOTE** most fields in the setup may be functions that return the required type.
-Example:
-```lua
-cwd = function() return vim.fn.expand('%:p:h') end -- sets cwd as parent directory of the current file
--- or even
-args = {
-  "-o",
-  function() return vim.fn.expand("%:p:r") .. ".out" end -- return {"-o", "current_file_name_without_extension.out"}
 }
 ```
 
