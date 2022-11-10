@@ -12,7 +12,7 @@ local Step = require "actions.model.step"
 ---@field filetypes table|nil
 ---@field patterns table|nil
 local Action = {
-  output_dir = vim.fn.stdpath "data" .. "/actions_output",
+  output_dir = (vim.fn.stdpath "log") .. "/actions_output",
 }
 Action.__index = Action
 

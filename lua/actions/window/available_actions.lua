@@ -2,6 +2,7 @@ local log = require "actions.log"
 local setup = require "actions.setup"
 local executor = require "actions.executor"
 local output_window = require "actions.window.action_output"
+local Action = require "actions.model.action"
 
 local window = {}
 
@@ -30,7 +31,7 @@ local set_outter_window_highlights
 function window.open()
   local cur_buf = vim.fn.bufnr()
   local buf_name = vim.api.nvim_buf_get_name(cur_buf)
-  local match_against = vim.fn.stdpath "data" .. "/actions_output/"
+  local match_against = Action.output_dir
   if string.find(buf_name, match_against) == nil then
     prev_buf = vim.fn.bufnr()
   end
