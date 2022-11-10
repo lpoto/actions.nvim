@@ -11,7 +11,9 @@ local Step = require "actions.model.step"
 ---@field cwd string|nil
 ---@field filetypes table|nil
 ---@field patterns table|nil
-local Action = {}
+local Action = {
+  output_dir = (vim.fn.stdpath "log") .. "/actions_output",
+}
 Action.__index = Action
 
 ---Create an action from a table
@@ -119,7 +121,7 @@ end
 
 ---Returns the path to the output file for this action.
 function Action:get_output_path()
-  return vim.fn.stdpath "data" .. "/actions_output/" .. self.name .. ".out"
+  return self.output_dir .. "/" .. self.name .. ".out"
 end
 
 return Action

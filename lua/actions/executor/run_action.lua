@@ -208,7 +208,7 @@ function run.run(action, on_exit)
 end
 
 ---Kills the provided action and saves the output from
----the buffer to the file in neovim's data directory.
+---the buffer to the file in neovim's log directory.
 ---Deletes the output buffer.
 ---
 ---@param action Action
@@ -257,9 +257,9 @@ end
 function run.write_output(path, lines, first)
   local ok, e
   if first then
-    ok, e = pcall(vim.fn.writefile, lines, path)
+    ok, e = pcall(vim.fn.writefile, lines, path, "S")
   else
-    ok, e = pcall(vim.fn.writefile, lines, path, "a")
+    ok, e = pcall(vim.fn.writefile, lines, path, "aS")
   end
   if ok == false then
     log.warn(e)
