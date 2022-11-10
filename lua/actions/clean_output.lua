@@ -10,7 +10,6 @@ local clean = {}
 ---@param name string?: Name of an action
 function clean.clean(name)
   local dir = Action.output_dir
-  print(dir)
   if name == nil then
     local ok, e = pcall(vim.fn.delete, dir, "rf")
     if ok == false then
