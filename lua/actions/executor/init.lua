@@ -13,7 +13,7 @@ local executor = {}
 ---@param name string: name of an action
 ---@return boolean
 function executor.is_running(name)
-  return run.is_running(name)
+  return run.get_job_id(name) ~= nil
 end
 
 ---Run the action identified by the provided name

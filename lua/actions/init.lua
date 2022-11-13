@@ -2,7 +2,6 @@ local log = require "actions.log"
 local setup = require "actions.setup"
 local available_actions = require "actions.window.available_actions"
 local actions_output = require "actions.window.action_output"
-local clean_output = require "actions.clean_output"
 
 local actions = {}
 
@@ -29,15 +28,6 @@ end
 ---@return nil
 function actions.toggle_last_output()
   actions_output.toggle_last()
-end
-
----Delete the output directory. When name is provided,
----delete only the output file that belongs to the action identified
----by the provided name.
----
----@param name string?: An action's name
-function actions.clean_output(name)
-  clean_output.clean(name)
 end
 
 return actions

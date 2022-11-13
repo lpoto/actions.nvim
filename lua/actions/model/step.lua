@@ -6,8 +6,7 @@
 ---@field env table|nil
 ---@field clear_env boolean|nil
 ---@field cwd string|nil
----@field exe string
----@field args table|nil
+---@field cmd string
 local Step = {}
 Step.__index = Step
 
@@ -50,23 +49,10 @@ function Step.create(o)
 
   step.clear_env = o.clear_env
 
-  if o.exe == nil or type(o.exe) ~= "string" then
-    return a, "Step '" .. step.name .. "' should have a string exe field!"
+  if o.cmd == nil or type(o.cmd) ~= "string" then
+    return a, "Step '" .. step.name .. "' should have a string cmd field!"
   end
-  step.exe = o.exe
-
-  if o.args ~= nil and type(o.args) ~= "table" then
-    return a, "Step '" .. step.name .. "'s args should be a table!"
-  end
-  if o.args ~= nil then
-    for _, v in ipairs(o.args) do
-      if type(v) ~= "string" then
-        return a,
-          "Step '" .. step.name .. "'s args should be a table of strings!"
-      end
-    end
-  end
-  step.args = o.args
+  step.cmd = o.cmd
 
   return step
 end
