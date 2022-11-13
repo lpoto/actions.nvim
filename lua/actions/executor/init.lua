@@ -16,6 +16,15 @@ function executor.is_running(name)
   return run.get_job_id(name) ~= nil
 end
 
+---Returns the output buffer number of the action,
+---or nil, if there is none.
+---
+---@param name string: name of an action
+---@return number?: the output buffer number
+function executor.get_action_output_buf(name)
+  return run.get_buf_num(name)
+end
+
 ---Run the action identified by the provided name
 ---
 ---@param name string: name of the action

@@ -95,7 +95,7 @@ function run.run(action, on_exit)
       env = env,
       clear_env = clear_env,
       detach = false,
-      on_exit = function(code)
+      on_exit = function(_, code)
         if running_actions[action.name] ~= nil then
           running_actions[action.name].job = nil
         end
