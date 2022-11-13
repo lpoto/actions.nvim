@@ -17,50 +17,78 @@ function window.open(action)
   if action == nil then
     return
   end
+
+  --NOTE: make sure the provided action is running.
   local buf = run_action.get_buf_num(action.name)
   if buf == nil or vim.fn.bufexists(buf) ~= 1 then
     log.warn("Action '" .. action.name .. "' has no output!")
     return
   end
 
+  --NOTE: execute the BufLeave autocmds, so the
+  --available actions window is wiped
   vim.api.nvim_exec_autocmds("BufLeave", {
     group = "ActionsWindow",
   })
 
+  --NOTE: if the action already has a window oppened for
+  --it's output, navigate to that window instead of oppening
+  --another one.
   local existing_buf = run_action.get_buf_num(action.name)
   if existing_buf ~= nil and vim.fn.bufexists(existing_buf) == 1 then
     local winnid = vim.fn.bufwinid(existing_buf)
     if winnid ~= -1 then
-      if vim.fn.win_gotoid(winnid) == 1 then
+      vim.fn.execute("keepjumps " .. winnid .. "wincmd p", true)
+      if winnid ~= vim.fn.bufwinid(vim.fn.bufnr()) then
         return
       end
     end
   end
 
-  vim.fn.execute "vertical new"
-  vim.fn.execute("buf " .. buf)
-  oppened_win = vim.fn.winnr()
+  if setup.config.before_displaying_output ~= nil then
+    --NOTE: allow user defining how the output
+    --window should be displayed.
 
-  vim.fn.matchadd("Function", "^==> ACTION: \\[.*\\]$")
-  vim.fn.matchadd("Constant", "^==> STEP: \\[.*\\]$")
-  vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
-  vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
+    setup.config.before_displaying_output(buf)
+  else
+    --NOTE: oppen the output window in a vertical
+    --split by default.
 
-  vim.api.nvim_create_autocmd("BufLeave", {
-    buffer = buf,
-    callback = function()
-      pcall(vim.api.nvim_buf_call, buf, function()
-        pcall(vim.fn.execute, "delm!")
-      end)
-    end,
-    once = true,
-  })
+    --NOTE: use keepjumps to no add the output buffer
+    --to the jumplist
+    vim.fn.execute("keepjumps vertical sb " .. buf)
+  end
+  local ow = vim.fn.bufwinid(buf)
+  if ow == -1 then
+    log.warn("There is no output window for action: " .. action.name)
+    return
+  end
+  oppened_win = ow
+
+  --NOTE: match some higlights in the output window
+  --to distinguish the echoed step and action info from
+  --the actual output
+  pcall(vim.api.nvim_win_call, ow, function()
+    vim.fn.matchadd("Function", "^==> ACTION: \\[.*\\]$")
+    vim.fn.matchadd("Constant", "^==> STEP: \\[.*\\]$")
+    vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
+    vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
+  end)
+
+  if setup.config.after_displaying_output ~= nil then
+    --NOTE: allow the user to
+    setup.config.after_displaying_output(oppened_win)
+  end
+
+  --NOTE: save which action's output has last been
+  --opened, so it may be toggled
   window.last_oppened = action.name
 end
 
 ---Reopens last oppened output window.
 ---If there is any.
 function window.toggle_last()
+  --NOTE: make sure there was any action oppened previously
   local action, err = setup.get_action(window.last_oppened)
   if err ~= nil then
     log.warn(err)
@@ -68,11 +96,17 @@ function window.toggle_last()
   elseif action == nil then
     return
   end
-  local ok, v = pcall(vim.fn.win_getid, oppened_win)
-  if ok == false or v == nil or v < 1 then
+
+  --NOTE: if there is no active window for the
+  --last oppened action open it, else close it.
+  local ok, v = pcall(vim.api.nvim_win_is_valid, oppened_win)
+
+  if ok == false or v ~= true then
     return window.open(action)
   end
-  vim.api.nvim_win_close(v, false)
+  --NOTE: this should hide the buffer as it has
+  --bufhidden=hide
+  vim.api.nvim_win_close(oppened_win, false)
 end
 
 return window

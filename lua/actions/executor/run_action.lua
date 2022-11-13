@@ -59,6 +59,8 @@ function run.run(action, on_exit)
   ---@type string|nil
   local cwd = action.cwd
 
+  -- NOTE: join all steps into a single command
+  -- and echo current step
   local cmd = "echo '==> ACTION: [" .. action.name .. "]' && echo ''"
   for _, step in ipairs(steps) do
     cmd = cmd
@@ -74,6 +76,9 @@ function run.run(action, on_exit)
     log.warn(term_buf)
     return false
   end
+  --NOTE: set the autocmd for the terminal buffer, so that
+  --when it finishes, we cannot enter the insert mode.
+  --(when we enter insert mode in the closed terminal, it is deleted)
   vim.api.nvim_create_autocmd("TermClose", {
     buffer = term_buf,
     callback = function()
@@ -88,6 +93,8 @@ function run.run(action, on_exit)
     nested = true,
     once = true,
   })
+  --NOTE: open a terminal in the created buffer
+  --set the terminal's properties to match the action
   local job_id
   local ok1, err = pcall(vim.api.nvim_buf_call, term_buf, function()
     _, job_id = pcall(vim.fn.termopen, cmd, {
@@ -107,10 +114,15 @@ function run.run(action, on_exit)
     log.warn(err)
     return false
   end
+  --NOTE: if job_id is string, it means
+  --an error occured when starting the action
   if type(job_id) == "string" then
     log.warn(job_id)
     return false
   end
+  --NOTE: try to name the buffer, add index to
+  --the end of it, in case a buffer with the same
+  --name is already loaded
   for i = 0, 20 do
     local name = action.name
     if i > 0 then
@@ -121,10 +133,18 @@ function run.run(action, on_exit)
       break
     end
   end
+  --NOTE: set some options for the output buffer,
+  --make sure it is not modifiable and that it is hidden
+  --when closing it.
+  --Set it's filetype to 'action_output' so it differs from
+  --other terminal windows.
   vim.api.nvim_buf_set_option(term_buf, "bufhidden", "hide")
   vim.api.nvim_buf_set_option(term_buf, "modifiable", false)
   vim.api.nvim_buf_set_option(term_buf, "modified", false)
   vim.api.nvim_buf_set_option(term_buf, "filetype", "action_output")
+
+  --NOTE: if an output buffer for the same action already exists,
+  --wipe it.
   local n = run.get_buf_num(action.name)
   if n ~= nil then
     pcall(vim.fn.execute, "bwipeout " .. n, true)
@@ -137,7 +157,7 @@ function run.run(action, on_exit)
   return true
 end
 
----Stop a running action
+---Stop a running action.
 ---
 ---@param action Action: Action to be stopped
 ---@param callback function?: Function to be called on successful stop

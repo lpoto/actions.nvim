@@ -33,6 +33,8 @@ end
 ---@param on_exit function: function called when the action exits.
 ---@return boolean: whether the action was started successfully
 function executor.start(name, prev_buf, on_exit)
+  --NOTE: fetch the action's data in the buffer from
+  --which it has been started.
   ---@type Action|nil
   local action, err = setup.get_action(name, prev_buf)
   if err ~= nil then
