@@ -29,11 +29,12 @@ local set_outter_window_highlights
 ---@return number: the oppened buffer number, -1 on failure
 function window.open()
   local cur_buf = vim.fn.bufnr()
-  local buf_name = vim.api.nvim_buf_get_name(cur_buf)
-  --local match_against = Action.output_dir
-  --if string.find(buf_name, match_against) == nil then
-  prev_buf = vim.fn.bufnr()
-  --end
+  if
+    vim.api.nvim_buf_get_option(cur_buf, "buftype") ~= "terminal"
+    or vim.api.nvim_buf_get_option(cur_buf, "filetype") ~= "action_output"
+  then
+    prev_buf = vim.fn.bufnr()
+  end
 
   local actions, err = setup.get_available(prev_buf)
   if err ~= nil then

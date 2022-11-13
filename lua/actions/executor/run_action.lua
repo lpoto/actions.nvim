@@ -124,6 +124,7 @@ function run.run(action, on_exit)
   vim.api.nvim_buf_set_option(term_buf, "bufhidden", "hide")
   vim.api.nvim_buf_set_option(term_buf, "modifiable", false)
   vim.api.nvim_buf_set_option(term_buf, "modified", false)
+  vim.api.nvim_buf_set_option(term_buf, "filetype", "action_output")
   local n = run.get_buf_num(action.name)
   if n ~= nil then
     pcall(vim.fn.execute, "bwipeout " .. n, true)
