@@ -69,8 +69,8 @@ function window.open(action)
   --to distinguish the echoed step and action info from
   --the actual output
   pcall(vim.api.nvim_win_call, ow, function()
-    vim.fn.matchadd("Function", "^==> ACTION: \\[.*\\]$")
-    vim.fn.matchadd("Constant", "^==> STEP: \\[.*\\]$")
+    vim.fn.matchadd("Function", "^==> ACTION: \\[\\_.\\{-}\\]$")
+    vim.fn.matchadd("Constant", "^==> STEP: \\[\\_.\\{-}\\]$")
     vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
     vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
 
