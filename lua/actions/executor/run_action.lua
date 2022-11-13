@@ -61,14 +61,14 @@ function run.run(action, on_exit)
 
   -- NOTE: join all steps into a single command
   -- and echo current step
-  local cmd = "echo '==> ACTION: [" .. action.name .. "]' && echo ''"
+  local cmd = "echo '==> ACTION: [" .. action.name:gsub("'", "'\\''") .. "]' && echo ''"
   for _, step in ipairs(steps) do
     cmd = cmd
       .. " && "
       .. "echo '' && echo '==> STEP: ["
-      .. step.cmd
+      .. step:gsub("'", "'\\''")
       .. "]' && echo ''"
-    cmd = cmd .. " && " .. step.cmd
+    cmd = cmd .. " && " .. step
   end
 
   local ok, term_buf = pcall(vim.api.nvim_create_buf, false, true)

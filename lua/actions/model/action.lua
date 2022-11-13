@@ -1,5 +1,3 @@
-local Step = require "actions.model.step"
-
 ---An Action represents a sequence
 ---of jobs to be executed synchronously.
 ---
@@ -67,20 +65,13 @@ function Action.create(name, o)
     return a, "Action '" .. name .. "'s steps should be a table!"
   end
 
-  --NOTE: create and verify action's steps
-
-  ---@type table: a table of steps
-  local steps = {}
-
+  --NOTE: verify action's steps
   for _, s in ipairs(o.steps) do
-    ---@type Step: a step of the action
-    local step, e = Step.create(s)
-    if e ~= nil then
-      return a, e
+    if type(s) ~= "string" then
+      return a, "Action '" .. name .. "'s steps should be strings!"
     end
-    table.insert(steps, step)
   end
-  a.steps = steps
+  a.steps = o.steps
   return a
 end
 
