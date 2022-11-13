@@ -65,13 +65,33 @@ function Action.create(name, o)
     return a, "Action '" .. name .. "'s steps should be a table!"
   end
 
+  local steps = {}
   --NOTE: verify action's steps
   for _, s in ipairs(o.steps) do
-    if type(s) ~= "string" then
-      return a, "Action '" .. name .. "'s steps should be strings!"
+    if type(s) == "table" then
+      local s2 = ""
+      for _, v in ipairs(s) do
+        if type(v) ~= "string" then
+          return a,
+            "Action '"
+              .. name
+              .. "'s steps should be strings or tables of strings!"
+        end
+        if string.len(s2) == 0 then
+          s2 = v
+        else
+          s2 = s2 .. " " .. v
+        end
+      end
+      s = s2
     end
+    if type(s) ~= "string" then
+      return a,
+        "Action '" .. name .. "'s steps should be strings or tables of string!"
+    end
+    table.insert(steps, s)
   end
-  a.steps = o.steps
+  a.steps = steps
   return a
 end
 
