@@ -1,25 +1,12 @@
 local Log_config = require "actions.model.log_config"
 
 ---@class User_config
+---@field before_displaying_output function
+---@field after_displaying_output function
 local User_config = {
   log = Log_config.default(),
   ---A table of actions, with actions' names as keys
   actions = {},
-  ---Function called before displaying the output buffer in the current window.
-  ---@return nil
-  ---@type function?
-  before_displaying_output = function()
-    pcall(vim.execute, "vsplit", true)
-  end,
-  ---Function called after displaying the output buffer
-  ---@param buf number?: The number of the output buffer
-  ---@return nil
-  ---@type function?
-  after_displaying_output = function(buf)
-    if vim.fn.bufexists(buf) ~= 1 then
-      return
-    end
-  end,
 }
 User_config.__index = User_config
 

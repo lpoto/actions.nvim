@@ -13,7 +13,16 @@ local executor = {}
 ---@param name string: name of an action
 ---@return boolean
 function executor.is_running(name)
-  return run.is_running(name)
+  return run.get_job_id(name) ~= nil
+end
+
+---Returns the output buffer number of the action,
+---or nil, if there is none.
+---
+---@param name string: name of an action
+---@return number?: the output buffer number
+function executor.get_action_output_buf(name)
+  return run.get_buf_num(name)
 end
 
 ---Run the action identified by the provided name
@@ -24,6 +33,8 @@ end
 ---@param on_exit function: function called when the action exits.
 ---@return boolean: whether the action was started successfully
 function executor.start(name, prev_buf, on_exit)
+  --NOTE: fetch the action's data in the buffer from
+  --which it has been started.
   ---@type Action|nil
   local action, err = setup.get_action(name, prev_buf)
   if err ~= nil then

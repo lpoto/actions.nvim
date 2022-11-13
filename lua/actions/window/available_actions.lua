@@ -2,7 +2,6 @@ local log = require "actions.log"
 local setup = require "actions.setup"
 local executor = require "actions.executor"
 local output_window = require "actions.window.action_output"
-local Action = require "actions.model.action"
 
 local window = {}
 
@@ -30,9 +29,10 @@ local set_outter_window_highlights
 ---@return number: the oppened buffer number, -1 on failure
 function window.open()
   local cur_buf = vim.fn.bufnr()
-  local buf_name = vim.api.nvim_buf_get_name(cur_buf)
-  local match_against = Action.output_dir
-  if string.find(buf_name, match_against) == nil then
+  if
+    vim.api.nvim_buf_get_option(cur_buf, "buftype") ~= "terminal"
+    or vim.api.nvim_buf_get_option(cur_buf, "filetype") ~= "action_output"
+  then
     prev_buf = vim.fn.bufnr()
   end
 
@@ -295,9 +295,8 @@ set_outter_window_lines = function(width, actions)
     if executor.is_running(action.name) then
       l = l .. string.rep(" ", 37) .. "[running]"
     else
-      local path = action:get_output_path()
-      local ok, v = pcall(vim.fn.filereadable, path)
-      if ok == true and v == 1 then
+      local output_buf = executor.get_action_output_buf(action.name)
+      if output_buf ~= nil and vim.fn.bufexists(output_buf) == 1 then
         l = l .. string.rep(" ", 37) .. "[output]"
       end
     end

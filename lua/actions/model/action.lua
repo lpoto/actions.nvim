@@ -1,5 +1,3 @@
-local Step = require "actions.model.step"
-
 ---An Action represents a sequence
 ---of jobs to be executed synchronously.
 ---
@@ -11,9 +9,7 @@ local Step = require "actions.model.step"
 ---@field cwd string|nil
 ---@field filetypes table|nil
 ---@field patterns table|nil
-local Action = {
-  output_dir = (vim.fn.stdpath "log") .. "/actions_output",
-}
+local Action = {}
 Action.__index = Action
 
 ---Create an action from a table
@@ -69,18 +65,31 @@ function Action.create(name, o)
     return a, "Action '" .. name .. "'s steps should be a table!"
   end
 
-  --NOTE: create and verify action's steps
-
-  ---@type table: a table of steps
   local steps = {}
-
+  --NOTE: verify action's steps
   for _, s in ipairs(o.steps) do
-    ---@type Step: a step of the action
-    local step, e = Step.create(s)
-    if e ~= nil then
-      return a, e
+    if type(s) == "table" then
+      local s2 = ""
+      for _, v in ipairs(s) do
+        if type(v) ~= "string" then
+          return a,
+            "Action '"
+              .. name
+              .. "'s steps should be strings or tables of strings!"
+        end
+        if string.len(s2) == 0 then
+          s2 = v
+        else
+          s2 = s2 .. " " .. v
+        end
+      end
+      s = s2
     end
-    table.insert(steps, step)
+    if type(s) ~= "string" then
+      return a,
+        "Action '" .. name .. "'s steps should be strings or tables of string!"
+    end
+    table.insert(steps, s)
   end
   a.steps = steps
   return a
@@ -117,11 +126,6 @@ function Action:is_available()
     end
   end
   return false
-end
-
----Returns the path to the output file for this action.
-function Action:get_output_path()
-  return self.output_dir .. "/" .. self.name .. ".out"
 end
 
 return Action
