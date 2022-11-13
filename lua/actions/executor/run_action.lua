@@ -73,11 +73,21 @@ function run.run(action, on_exit)
     cmd = cmd .. " && " .. step
   end
 
-  local ok, term_buf = pcall(vim.api.nvim_create_buf, false, true)
-  if ok == false then
-    log.warn(term_buf)
-    return false
+  --NOTE: if an output buffer for the same action already exists,
+  --open terminal in that one instead of creating a new one
+  local term_buf = run.get_buf_num(action.name)
+  if term_buf == nil or vim.fn.bufexists(term_buf) ~= 1 then
+    local ok
+    ok, term_buf = pcall(vim.api.nvim_create_buf, false, true)
+    if ok == false then
+      log.warn(term_buf)
+      return false
+    end
+  else
+    vim.api.nvim_buf_set_option(term_buf, "modified", false)
+    vim.api.nvim_buf_set_option(term_buf, "modifiable", true)
   end
+
   --NOTE: set the autocmd for the terminal buffer, so that
   --when it finishes, we cannot enter the insert mode.
   --(when we enter insert mode in the closed terminal, it is deleted)
@@ -144,13 +154,6 @@ function run.run(action, on_exit)
   vim.api.nvim_buf_set_option(term_buf, "modifiable", false)
   vim.api.nvim_buf_set_option(term_buf, "modified", false)
   vim.api.nvim_buf_set_option(term_buf, "filetype", "action_output")
-
-  --NOTE: if an output buffer for the same action already exists,
-  --wipe it.
-  local n = run.get_buf_num(action.name)
-  if n ~= nil then
-    pcall(vim.fn.execute, "bwipeout " .. n, true)
-  end
 
   running_actions[action.name] = {
     job = job_id,
