@@ -61,7 +61,9 @@ function run.run(action, on_exit)
 
   -- NOTE: join all steps into a single command
   -- and echo current step
-  local cmd = "echo '==> ACTION: [" .. action.name:gsub("'", "'\\''") .. "]' && echo ''"
+  local cmd = "echo '==> ACTION: ["
+    .. action.name:gsub("'", "'\\''")
+    .. "]' && echo ''"
   for _, step in ipairs(steps) do
     cmd = cmd
       .. " && "

@@ -73,12 +73,12 @@ function window.open(action)
     vim.fn.matchadd("Constant", "^==> STEP: \\[.*\\]$")
     vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
     vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
-  end)
 
-  if setup.config.after_displaying_output ~= nil then
-    --NOTE: allow the user to
-    setup.config.after_displaying_output(oppened_win)
-  end
+    if setup.config.after_displaying_output ~= nil then
+      --NOTE: allow the user to
+      setup.config.after_displaying_output(oppened_win)
+    end
+  end)
 
   --NOTE: save which action's output has last been
   --opened, so it may be toggled
