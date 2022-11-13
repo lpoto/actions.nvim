@@ -27,6 +27,16 @@ function window.open(action)
     group = "ActionsWindow",
   })
 
+  local existing_buf = run_action.get_buf_num(action.name)
+  if existing_buf ~= nil and vim.fn.bufexists(existing_buf) == 1 then
+    local winnid = vim.fn.bufwinid(existing_buf)
+    if winnid ~= -1 then
+      if vim.fn.win_gotoid(winnid) == 1 then
+        return
+      end
+    end
+  end
+
   vim.fn.execute "vertical new"
   vim.fn.execute("buf " .. buf)
   oppened_win = vim.fn.winnr()
