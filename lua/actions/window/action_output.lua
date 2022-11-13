@@ -36,10 +36,10 @@ function window.open(action)
   --another one.
   local existing_buf = run_action.get_buf_num(action.name)
   if existing_buf ~= nil and vim.fn.bufexists(existing_buf) == 1 then
-    local winnid = vim.fn.bufwinid(existing_buf)
-    if winnid ~= -1 then
-      vim.fn.execute("keepjumps " .. winnid .. "wincmd p", true)
-      if winnid ~= vim.fn.bufwinid(vim.fn.bufnr()) then
+    local winnr = vim.fn.bufwinnr(existing_buf)
+    if winnr ~= -1 then
+      vim.fn.execute("keepjumps " .. winnr .. "wincmd w", true)
+      if winnr == vim.fn.bufwinnr(vim.fn.bufnr()) then
         return
       end
     end
