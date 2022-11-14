@@ -1,4 +1,5 @@
 local log = require "actions.log"
+local enum = require "actions.enum"
 
 ---A table with actions' names as keys
 ---and their job ids as values
@@ -91,18 +92,18 @@ function run.run(action, on_exit)
   vim.api.nvim_clear_autocmds {
     event = { "TermClose", "TermEnter" },
     buffer = term_buf,
-    group = "ActionsNvim",
+    group = enum.ACTIONS_AUGROUP,
   }
   --NOTE: set the autocmd for the terminal buffer, so that
   --when it finishes, we cannot enter the insert mode.
   --(when we enter insert mode in the closed terminal, it is deleted)
   vim.api.nvim_create_autocmd("TermClose", {
     buffer = term_buf,
-    group = "ActionsNvim",
+    group = enum.ACTIONS_AUGROUP,
     callback = function()
       vim.cmd "stopinsert"
       vim.api.nvim_create_autocmd("TermEnter", {
-        group = "ActionsNvim",
+        group = enum.ACTIONS_AUGROUP,
         callback = function()
           vim.cmd "stopinsert"
         end,
@@ -160,7 +161,11 @@ function run.run(action, on_exit)
   vim.api.nvim_buf_set_option(term_buf, "bufhidden", "hide")
   vim.api.nvim_buf_set_option(term_buf, "modifiable", false)
   vim.api.nvim_buf_set_option(term_buf, "modified", false)
-  vim.api.nvim_buf_set_option(term_buf, "filetype", "action_output_terminal")
+  vim.api.nvim_buf_set_option(
+    term_buf,
+    "filetype",
+    enum.OUTPUT_BUFFER_FILETYPE
+  )
 
   running_actions[action.name] = {
     job = job_id,

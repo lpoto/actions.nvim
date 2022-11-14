@@ -1,5 +1,6 @@
 local setup = require "actions.setup"
 local log = require "actions.log"
+local enum = require "actions.enum"
 local run_action = require "actions.executor.run_action"
 
 local oppened_win = nil
@@ -28,7 +29,7 @@ function window.open(action)
   --NOTE: execute the BufLeave autocmds, so the
   --available actions window is wiped
   vim.api.nvim_exec_autocmds("BufLeave", {
-    group = "ActionsNvim",
+    group = enum.ACTIONS_AUGROUP,
   })
 
   --NOTE: if the action already has a window oppened for
