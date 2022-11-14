@@ -88,14 +88,21 @@ function run.run(action, on_exit)
     vim.api.nvim_buf_set_option(term_buf, "modifiable", true)
   end
 
+  vim.api.nvim_clear_autocmds {
+    event = { "TermClose", "TermEnter" },
+    buffer = term_buf,
+    group = "ActionsNvim",
+  }
   --NOTE: set the autocmd for the terminal buffer, so that
   --when it finishes, we cannot enter the insert mode.
   --(when we enter insert mode in the closed terminal, it is deleted)
   vim.api.nvim_create_autocmd("TermClose", {
     buffer = term_buf,
+    group = "ActionsNvim",
     callback = function()
       vim.cmd "stopinsert"
       vim.api.nvim_create_autocmd("TermEnter", {
+        group = "ActionsNvim",
         callback = function()
           vim.cmd "stopinsert"
         end,
@@ -140,7 +147,7 @@ function run.run(action, on_exit)
     if i > 0 then
       name = name .. "_" .. i
     end
-    ok, _ = pcall(vim.api.nvim_buf_set_name, term_buf, name)
+    local ok, _ = pcall(vim.api.nvim_buf_set_name, term_buf, name)
     if ok == true then
       break
     end
@@ -153,7 +160,7 @@ function run.run(action, on_exit)
   vim.api.nvim_buf_set_option(term_buf, "bufhidden", "hide")
   vim.api.nvim_buf_set_option(term_buf, "modifiable", false)
   vim.api.nvim_buf_set_option(term_buf, "modified", false)
-  vim.api.nvim_buf_set_option(term_buf, "filetype", "action_output")
+  vim.api.nvim_buf_set_option(term_buf, "filetype", "action_output_terminal")
 
   running_actions[action.name] = {
     job = job_id,

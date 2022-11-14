@@ -357,12 +357,13 @@ set_window_options = function()
   vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
   vim.api.nvim_buf_set_option(outter_buf, "bufhidden", "wipe")
 
-  vim.api.nvim_create_augroup("ActionsWindow", {
-    clear = true,
-  })
+  vim.api.nvim_clear_autocmds {
+    event = "BufLeave",
+    group = "ActionsNvim",
+  }
   vim.api.nvim_create_autocmd("BufLeave", {
     buffer = buf,
-    group = "ActionsWindow",
+    group = "ActionsNvim",
     callback = function()
       vim.api.nvim_buf_delete(buf, {
         force = true,
@@ -381,7 +382,7 @@ set_window_options = function()
     "<Esc>",
     "<CMD>call nvim_exec_autocmds('BufLeave', {'buffer':"
       .. buf
-      .. ", 'group':'ActionsWindow'})<CR>",
+      .. ", 'group':'ActionsNvim'})<CR>",
     {
       noremap = true,
     }
