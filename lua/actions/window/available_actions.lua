@@ -2,6 +2,7 @@ local log = require "actions.log"
 local setup = require "actions.setup"
 local executor = require "actions.executor"
 local output_window = require "actions.window.action_output"
+local enum = require "actions.enum"
 
 local window = {}
 
@@ -31,7 +32,8 @@ function window.open()
   local cur_buf = vim.fn.bufnr()
   if
     vim.api.nvim_buf_get_option(cur_buf, "buftype") ~= "terminal"
-    or vim.api.nvim_buf_get_option(cur_buf, "filetype") ~= "action_output"
+    or vim.api.nvim_buf_get_option(cur_buf, "filetype")
+      ~= enum.OUTPUT_BUFFER_FILETYPE
   then
     prev_buf = vim.fn.bufnr()
   end
@@ -359,11 +361,11 @@ set_window_options = function()
 
   vim.api.nvim_clear_autocmds {
     event = "BufLeave",
-    group = "ActionsNvim",
+    group = enum.ACTIONS_AUGROUP,
   }
   vim.api.nvim_create_autocmd("BufLeave", {
     buffer = buf,
-    group = "ActionsNvim",
+    group = enum.ACTIONS_AUGROUP,
     callback = function()
       vim.api.nvim_buf_delete(buf, {
         force = true,
@@ -382,7 +384,9 @@ set_window_options = function()
     "<Esc>",
     "<CMD>call nvim_exec_autocmds('BufLeave', {'buffer':"
       .. buf
-      .. ", 'group':'ActionsNvim'})<CR>",
+      .. ", 'group':'"
+      .. enum.ACTIONS_AUGROUP
+      .. "'})<CR>",
     {
       noremap = true,
     }

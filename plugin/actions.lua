@@ -11,4 +11,7 @@ if vim.g.loaded_actions_nvim == 1 then
 end
 vim.g.loaded_actions_nvim = 1
 
-vim.api.nvim_create_augroup("ActionsNvim", { clear = true })
+vim.api.nvim_create_augroup(
+  require("actions.enum").ACTIONS_AUGROUP,
+  { clear = true }
+)
