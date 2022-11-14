@@ -10,3 +10,5 @@ if vim.g.loaded_actions_nvim == 1 then
   return
 end
 vim.g.loaded_actions_nvim = 1
+
+vim.api.nvim_create_augroup("ActionsNvim", { clear = true })

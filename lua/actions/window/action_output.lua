@@ -28,7 +28,7 @@ function window.open(action)
   --NOTE: execute the BufLeave autocmds, so the
   --available actions window is wiped
   vim.api.nvim_exec_autocmds("BufLeave", {
-    group = "ActionsWindow",
+    group = "ActionsNvim",
   })
 
   --NOTE: if the action already has a window oppened for
