@@ -76,6 +76,7 @@ function window.open(action)
 
     vim.fn.matchadd("Function", "^==> ACTION: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Constant", "^==> STEP: \\[\\_.\\{-}\\n\\n")
+    vim.fn.matchadd("Comment", "^==> CWD: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
     vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
 

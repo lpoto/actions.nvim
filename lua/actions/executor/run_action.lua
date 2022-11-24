@@ -65,6 +65,9 @@ function run.run(action, on_exit)
   local cmd = "echo '==> ACTION: ["
     .. vim.fn.shellescape(action.name)
     .. "]\n' "
+  if cwd ~= nil then
+    cmd = cmd .. " && echo '\n==> CWD: [" .. cwd .. "]\n'"
+  end
   for _, step in ipairs(steps) do
     cmd = cmd
       .. " && "
