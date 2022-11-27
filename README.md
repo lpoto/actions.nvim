@@ -66,7 +66,7 @@ require("actions").setup {
 ### Open a window with available actions for the current file:
 
 ```lua
-require('actions').open()
+require('actions').available_actions()
 ```
 
 In this window actions may be started, killed, or their outputs displayed (in a different window).
