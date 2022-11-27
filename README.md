@@ -25,9 +25,9 @@ require("actions").setup {
   },
   mappings = {
     available_actions = {
-        run_kill = "<Enter>" -- <Enter> is default
-        show_output = "o" -- o is default
-        show_definition = "d" -- d is default
+        run_kill = "<Enter>", -- <Enter> is default
+        show_output = "o", -- o is default
+        show_definition = "d", -- d is default
     }
   },
   actions = {
