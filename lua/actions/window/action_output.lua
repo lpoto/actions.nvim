@@ -21,6 +21,31 @@ function window.open(action)
     log.warn("Action '" .. action.name .. "' has no output!")
     return
   end
+  local create_buffer, handle_window = window.get_init_functions(action)
+  output_window.open(create_buffer, handle_window)
+  output_window.set_previous(create_buffer, handle_window)
+end
+
+---Set the provided action identified b
+---action in the current window.
+---
+---@param action Action
+function window.set_as_previous(action)
+  if action == nil then
+    return
+  end
+  -- NOTE: make sure the provided action is running.
+  local buf = run_action.get_buf_num(action.name)
+  if buf == nil or vim.fn.bufexists(buf) ~= 1 then
+    return
+  end
+  output_window.set_previous(window.get_init_functions(action))
+end
+
+---@param action Action: the action for which the output will be shown.
+---@return function: Function to get the output buffer number
+---@return function: Function to handle the oppened window
+function window.get_init_functions(action)
   ---@return number?: An action output buffer number
   local create_buffer = function()
     return run_action.get_buf_num(action.name)
@@ -45,7 +70,7 @@ function window.open(action)
       end
     end)
   end
-  output_window.open(create_buffer, handle_window)
+  return create_buffer, handle_window
 end
 
 return window

@@ -8,7 +8,7 @@ local actions = {}
 ---Set up the plugin and add actions.
 ---
 ---@param user_config table
----@return nil
+---@see User_config
 function actions.setup(user_config)
   local err = setup.parse(user_config)
   if err ~= nil then
@@ -18,14 +18,12 @@ end
 
 ---Opens a window with all the available actions.
 ---From that window the actions may then be executed,
----killed, or their output shown.
----@return nil
-function actions.open()
+---killed and their output or definition shown.
+function actions.available_actions()
   available_actions.open()
 end
 
 ---Reopens the last oppened action output window.
----@return nil
 function actions.toggle_last_output()
   output_window.toggle_last()
 end
