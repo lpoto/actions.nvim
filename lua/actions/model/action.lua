@@ -18,7 +18,7 @@ Action.__index = Action
 ---@param o table: Action's fields
 ---@return Action
 ---@return string?: An error that occured when creating an Action
-function Action.create(name, o)
+function Action.__create(name, o)
   ---@type Action
   local a = {}
   setmetatable(a, Action)
@@ -100,7 +100,7 @@ end
 ---matches it's filetypes.
 ---
 ---@return boolean
-function Action:is_available()
+function Action:__is_available()
   local filetypes = self.filetypes
   local current_filetype = vim.o["filetype"]
   local continue = filetypes == nil or next(filetypes) == nil

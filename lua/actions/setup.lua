@@ -3,7 +3,7 @@ local Action = require "actions.model.action"
 
 local setup = {}
 
-setup.config = User_config.default()
+setup.config = User_config.__default()
 
 ---Parse the provided table into a User_config class
 ---Use default config on any errors.
@@ -11,11 +11,11 @@ setup.config = User_config.default()
 ---@param o table
 ---@return string|nil: Error that occured when parsing
 function setup.parse(o)
-  local cfg, e = User_config.create(o)
+  local cfg, e = User_config.__create(o)
   if e ~= nil then
     return e
   end
-  setup.config:add(cfg)
+  User_config.__merge(setup.config, cfg)
   return nil
 end
 
@@ -34,12 +34,12 @@ function setup.get_available(temp_buf)
   local e = nil
   local check = function()
     for name, action_f in pairs(setup.config.actions) do
-      local action, err = Action.create(name, action_f())
+      local action, err = Action.__create(name, action_f())
       if err ~= nil then
         e = err
         return
       end
-      if action:is_available() then
+      if action:__is_available() then
         table.insert(actions_table, action)
       end
     end
@@ -65,10 +65,10 @@ function setup.get_action(name, temp_buf)
   end
   local a, e
   if temp_buf == nil or vim.fn.bufexists(temp_buf) ~= 1 then
-    a, e = Action.create(name, action_f())
+    a, e = Action.__create(name, action_f())
   else
     vim.api.nvim_buf_call(temp_buf, function()
-      a, e = Action.create(name, action_f())
+      a, e = Action.__create(name, action_f())
     end)
   end
   return a, e

@@ -1,7 +1,7 @@
 ---@class Log_config
----@field level number: a vim.log.levels value
+---@field level number: a vim.log.levels value (default: INFO)
 ---@field prefix string: Prefix added before logs (default: 'Actions.nvim')
----@field silent boolean: Whether the logging is disabled
+---@field silent boolean: Whether the logging is disabled (default: false)
 local Log_config = {
   level = vim.log.levels.INFO,
   prefix = "Actions.nvim",
@@ -12,7 +12,7 @@ Log_config.__index = Log_config
 ---Create a default log config
 ---
 ---@return Log_config
-function Log_config.default()
+function Log_config.__default()
   ---@type Log_config
   local cfg = {}
   setmetatable(cfg, Log_config)
@@ -24,7 +24,7 @@ end
 ---@param o table: Table from which to parse the config
 ---@return Log_config
 ---@return string|nil: An error that occured while creating the config
-function Log_config.create(o)
+function Log_config.__create(o)
   ---@type Log_config
   local cfg = {}
   setmetatable(cfg, Log_config)
