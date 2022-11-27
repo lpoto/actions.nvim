@@ -44,8 +44,8 @@ require("actions").setup {
     end
   },
   before_displaying_output = function(bufnr)
-    -- This is useful for oppening a window for the bufnr.
-    -- This function should always open a window for the provided bufnr,
+    -- This function should always open a window for the provided bufnr
+    -- (the number of the action's output buffer),
     -- if this function is not defined, the default is used:
     vim.fn.execute("keepjumps vertical sb " .. bufnr)
   end
