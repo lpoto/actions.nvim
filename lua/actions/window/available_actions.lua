@@ -84,8 +84,8 @@ function window.open()
     relative = "editor",
     style = "minimal",
     width = width - 13,
-    height = height - 6,
-    row = row + 6,
+    height = height - 5,
+    row = row + 5,
     col = col + 3,
     noautocmd = true,
     -- border = "rounded",
@@ -151,8 +151,8 @@ function window.select_action_under_cursor()
       pcall(
         vim.api.nvim_buf_set_lines,
         outter_buf,
+        linenr + 3,
         linenr + 4,
-        linenr + 5,
         false,
         { l }
       )
@@ -169,8 +169,8 @@ function window.select_action_under_cursor()
       pcall(
         vim.api.nvim_buf_set_lines,
         outter_buf,
+        linenr + 3,
         linenr + 4,
-        linenr + 5,
         false,
         { l }
       )
@@ -273,6 +273,14 @@ set_window_lines = function(actions)
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
 
+local function add_suffix(s, suf, max_width)
+  local dif = max_width - string.len(s) - string.len(suf)
+  if dif > 0 then
+    s = s .. string.rep(" ", dif)
+  end
+  return s .. suf
+end
+
 ---Replace lines in the outter actions window with instructions
 ---
 ---@param width number: width of the actions window
@@ -286,10 +294,21 @@ set_outter_window_lines = function(width, actions)
   vim.api.nvim_buf_set_option(outter_buf, "modifiable", true)
 
   local lines = {
-    " Run an action with: '<ENTER>'",
-    " Kill a running action with: '<ENTER>'",
-    " See the output of an action with: 'o'",
-    " See the action's definition with: 'd'",
+    add_suffix(
+      " Run or kill an action with: ",
+      setup.config.mappings.available_actions.run_kill .. " ",
+      width
+    ),
+    add_suffix(
+      " See the output of an action with: ",
+      setup.config.mappings.available_actions.show_output .. " ",
+      width
+    ),
+    add_suffix(
+      " See the action's definition with: ",
+      setup.config.mappings.available_actions.show_definition .. " ",
+      width
+    ),
     string.rep("-", width),
   }
   for _, action in ipairs(actions) do
@@ -391,33 +410,36 @@ set_window_options = function()
       noremap = true,
     }
   )
-  -- NOTE: select the action under the cursor with <Enter>
+  -- NOTE: select the action under the cursor with
+  -- setup.config.mappings.available_actions.run_kill
   -- if the action is running this will kill it, otherwise
   -- it will kill it
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    "<CR>",
+    setup.config.mappings.available_actions.run_kill,
     "<CMD>lua require('actions.window.available_actions')"
       .. ".select_action_under_cursor()<CR>",
     {}
   )
-  -- NOTE: show the output of an action with 'o' (if there is any)
+  -- NOTE: show the output of an action with (if there is any)
+  -- setup.config.mappings.available_actions.show_output
   -- this will close the actions window and oppen
   -- the output in the current window
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    "o",
+    setup.config.mappings.available_actions.show_output,
     "<CMD>lua require('actions.window.available_actions')"
       .. ".output_of_action_under_cursor()<CR>",
     {}
   )
-  -- NOTE: show the definition of an action with 'd'
+  -- NOTE: show the definition of an action with
+  -- setup.config.mappings.available_actions.show_definition
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    "d",
+    setup.config.mappings.available_actions.show_definition,
     "<CMD>lua require('actions.window.available_actions')"
       .. ".definition_of_action_under_cursor()<CR>",
     {}
