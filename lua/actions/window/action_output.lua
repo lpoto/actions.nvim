@@ -87,6 +87,11 @@ function window.open(action)
     vim.fn.matchadd("Comment", "^==> CWD: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
     vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
+
+    if vim.fn.winwidth(ow) < 50 and vim.o.columns >= 70 then
+      -- NOTE: make sure the output window is at least 50 columns wide
+      vim.fn.execute("vertical resize " .. 50, true)
+    end
   end)
 
   --NOTE: save which action's output has last been
