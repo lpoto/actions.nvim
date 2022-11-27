@@ -1,7 +1,7 @@
 local log = require "actions.log"
 local setup = require "actions.setup"
 local available_actions = require "actions.window.available_actions"
-local actions_output = require "actions.window.action_output"
+local output_window = require "actions.window.output"
 
 local actions = {}
 
@@ -27,7 +27,7 @@ end
 ---Reopens the last oppened action output window.
 ---@return nil
 function actions.toggle_last_output()
-  actions_output.toggle_last()
+  output_window.toggle_last()
 end
 
 return actions

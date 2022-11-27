@@ -1,11 +1,12 @@
 local Log_config = require "actions.model.log_config"
+local Mappings_config = require "actions.model.mappings_config"
 
 ---@class User_config
 ---@field before_displaying_output function
 local User_config = {
   log = Log_config.default(),
-  ---A table of actions, with actions' names as keys
   actions = {},
+  mappings = Mappings_config.default(),
 }
 User_config.__index = User_config
 
@@ -56,6 +57,12 @@ function User_config.create(o)
         return cfg, "before_displaying_output should be a function!"
       end
       cfg.before_displaying_output = value
+    elseif key == "mappings" then
+      local v, e = Mappings_config.create(value)
+      if e ~= nil then
+        return cfg, e
+      end
+      cfg.mappings = v
     else
       return cfg, "Invalid config field: " .. key
     end

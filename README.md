@@ -23,6 +23,13 @@ require("actions").setup {
     silent = false, -- default: false, when true, actions logging is disabled
     prefix = "Custom-Prefix", -- default: "Actions.nvim"
   },
+  mappings = {
+    available_actions = {
+        run_kill = "<Enter>" -- <Enter> is default
+        show_output = "o" -- o is default
+        show_definition = "d" -- d is default
+    }
+  },
   actions = {
     -- NOTE: action configs are functions that are called when running the actions
     -- this is useful for creating actions with fields relative to the oppened file

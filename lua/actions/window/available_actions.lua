@@ -12,12 +12,12 @@ local prev_buf = nil
 ---@type number?: Currently oppened actions buffer
 local buf = nil
 ---@type number?: The currently oppened
---actions buffer's background buffer
+-- actions buffer's background buffer
 local outter_buf = nil
 
---utility functions to handle the
---creation and the appearance of the
---actions window and buffer
+-- utility functions to handle the
+-- creation and the appearance of the
+-- actions window and buffer
 local set_window_lines
 local set_outter_window_lines
 local set_window_options
@@ -49,19 +49,19 @@ function window.open()
     return -1
   end
 
-  --NOTE: oppene 2 floating windows, the outter window
-  --contains the border,the instructions text and the
-  --action's labels, while the inner window contains
-  --only the actions' names.
-  --User may only navigate the inner window.
+  -- NOTE: oppene 2 floating windows, the outter window
+  -- contains the border,the instructions text and the
+  -- action's labels, while the inner window contains
+  -- only the actions' names.
+  -- User may only navigate the inner window.
 
   local width = 50
   local height = 30
   local row = vim.o.lines / 2 - height / 2
   local col = vim.o.columns / 2 - width / 2
 
-  --NOTE: make sure that both windows are closed
-  --when the inner window loses focus
+  -- NOTE: make sure that both windows are closed
+  -- when the inner window loses focus
 
   outter_buf = vim.api.nvim_create_buf(false, true)
   buf = vim.api.nvim_create_buf(false, true)
@@ -84,11 +84,11 @@ function window.open()
     relative = "editor",
     style = "minimal",
     width = width - 13,
-    height = height - 6,
-    row = row + 6,
+    height = height - 5,
+    row = row + 5,
     col = col + 3,
     noautocmd = true,
-    --border = "rounded",
+    -- border = "rounded",
   })
 
   set_window_highlights()
@@ -121,56 +121,56 @@ function window.select_action_under_cursor()
     executor.kill(name, prev_buf)
     return
   end
-  --NOTE: the action was not yet running, so we may start it.
-  --Pass a callback function to the executor, and replace
-  --the [running] label on finish.
+  -- NOTE: the action was not yet running, so we may start it.
+  -- Pass a callback function to the executor, and replace
+  -- the [running] label on finish.
   if
     executor.start(name, prev_buf, function(exit_code)
-      --NOTE: set output label based on the exit code of
-      --the action's job.
-      --Use [done] as default label
+      -- NOTE: set output label based on the exit code of
+      -- the action's job.
+      -- Use [done] as default label
       local label = "[done]"
       if exit_code == 0 then
-        --NOTE: action exited with code 0, therefore the
-        --job was successful
+        -- NOTE: action exited with code 0, therefore the
+        -- job was successful
         label = "[success]"
       elseif exit_code == -1 then
-        --NOTE: exit_code -1 means an error occured while running the job
-        --(in execution of the job, not in the program itself)
+        -- NOTE: exit_code -1 means an error occured while running the job
+        -- (in execution of the job, not in the program itself)
         label = "[error]"
       elseif type(exit_code) == "number" and exit_code > 0 then
-        --NOTE: The action exited with an error code
-        --which means there is an error in the program itself, not
-        --in the execution of the job
+        -- NOTE: The action exited with an error code
+        -- which means there is an error in the program itself, not
+        -- in the execution of the job
         label = "[exit]"
       end
       local l = "> " .. string.rep(" ", 37) .. label
-      --NOTE: make sure the buffer is modifiable before
-      --replacing text
+      -- NOTE: make sure the buffer is modifiable before
+      -- replacing text
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
       pcall(
         vim.api.nvim_buf_set_lines,
         outter_buf,
+        linenr + 3,
         linenr + 4,
-        linenr + 5,
         false,
         { l }
       )
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", false)
     end) == true
   then
-    --NOTE: the executor successfully started the job, so
-    --add the [running] label to the actino.
+    -- NOTE: the executor successfully started the job, so
+    -- add the [running] label to the actino.
     if executor.is_running(name) == true then
       local l = "> " .. string.rep(" ", 37) .. "[running]"
-      --NOTE: make sure the buffer is modifiable before
-      --replacing any lines
+      -- NOTE: make sure the buffer is modifiable before
+      -- replacing any lines
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
       pcall(
         vim.api.nvim_buf_set_lines,
         outter_buf,
+        linenr + 3,
         linenr + 4,
-        linenr + 5,
         false,
         { l }
       )
@@ -199,10 +199,10 @@ function window.definition_of_action_under_cursor()
   if action == nil then
     return
   end
-  --NOTE: recursively print the current definition
-  --of the action
-  --NOTE: displayed fields are the ones that would be used
-  --for the execution
+  -- NOTE: recursively print the current definition
+  -- of the action
+  -- NOTE: displayed fields are the ones that would be used
+  -- for the execution
   print "action: "
   local function tprint(tbl, indent)
     if not indent then
@@ -273,6 +273,14 @@ set_window_lines = function(actions)
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 end
 
+local function add_suffix(s, suf, max_width)
+  local dif = max_width - string.len(s) - string.len(suf)
+  if dif > 0 then
+    s = s .. string.rep(" ", dif)
+  end
+  return s .. suf
+end
+
 ---Replace lines in the outter actions window with instructions
 ---
 ---@param width number: width of the actions window
@@ -286,10 +294,21 @@ set_outter_window_lines = function(width, actions)
   vim.api.nvim_buf_set_option(outter_buf, "modifiable", true)
 
   local lines = {
-    " Run an action with: '<ENTER>'",
-    " Kill a running action with: '<ENTER>'",
-    " See the output of an action with: 'o'",
-    " See the action's definition with: 'd'",
+    add_suffix(
+      " Run or kill an action with: ",
+      setup.config.mappings.available_actions.run_kill .. " ",
+      width
+    ),
+    add_suffix(
+      " See the output of an action with: ",
+      setup.config.mappings.available_actions.show_output .. " ",
+      width
+    ),
+    add_suffix(
+      " See the action's definition with: ",
+      setup.config.mappings.available_actions.show_definition .. " ",
+      width
+    ),
     string.rep("-", width),
   }
   for _, action in ipairs(actions) do
@@ -376,8 +395,8 @@ set_window_options = function()
     end,
     once = true,
   })
-  --NOTE: <Esc> closes the window by triggering
-  --the BufLeave autocmd for the actions buffer
+  -- NOTE: <Esc> closes the window by triggering
+  -- the BufLeave autocmd for the actions buffer
   vim.api.nvim_buf_set_keymap(
     buf,
     "n",
@@ -391,33 +410,36 @@ set_window_options = function()
       noremap = true,
     }
   )
-  --NOTE: select the action under the cursor with <Enter>
-  --if the action is running this will kill it, otherwise
-  --it will kill it
+  -- NOTE: select the action under the cursor with
+  -- setup.config.mappings.available_actions.run_kill
+  -- if the action is running this will kill it, otherwise
+  -- it will kill it
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    "<CR>",
+    setup.config.mappings.available_actions.run_kill,
     "<CMD>lua require('actions.window.available_actions')"
       .. ".select_action_under_cursor()<CR>",
     {}
   )
-  --NOTE: show the output of an action with 'o' (if there is any)
-  --this will close the actions window and oppen
-  --the output in the current window
+  -- NOTE: show the output of an action with (if there is any)
+  -- setup.config.mappings.available_actions.show_output
+  -- this will close the actions window and oppen
+  -- the output in the current window
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    "o",
+    setup.config.mappings.available_actions.show_output,
     "<CMD>lua require('actions.window.available_actions')"
       .. ".output_of_action_under_cursor()<CR>",
     {}
   )
-  --NOTE: show the definition of an action with 'd'
+  -- NOTE: show the definition of an action with
+  -- setup.config.mappings.available_actions.show_definition
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    "d",
+    setup.config.mappings.available_actions.show_definition,
     "<CMD>lua require('actions.window.available_actions')"
       .. ".definition_of_action_under_cursor()<CR>",
     {}
