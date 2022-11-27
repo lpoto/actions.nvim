@@ -48,10 +48,6 @@ require("actions").setup {
     -- This function should always open a window for the provided bufnr,
     -- if this function is not defined, the default is used:
     vim.fn.execute("keepjumps vertical sb " .. bufnr)
-  end,
-  after_displaying_output = function(winnid)
-    -- Useful for setting some custom higlights or remappings for the output window
-    -- NOTE: this function is called from the output window.
   end
 }
 ```

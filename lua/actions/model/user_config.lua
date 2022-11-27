@@ -2,7 +2,6 @@ local Log_config = require "actions.model.log_config"
 
 ---@class User_config
 ---@field before_displaying_output function
----@field after_displaying_output function
 local User_config = {
   log = Log_config.default(),
   ---A table of actions, with actions' names as keys
@@ -57,11 +56,6 @@ function User_config.create(o)
         return cfg, "before_displaying_output should be a function!"
       end
       cfg.before_displaying_output = value
-    elseif key == "after_displaying_output" then
-      if type(value) ~= "function" then
-        return cfg, "after_displaying_output should be a function!"
-      end
-      cfg.after_displaying_output = value
     else
       return cfg, "Invalid config field: " .. key
     end

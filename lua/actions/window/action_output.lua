@@ -57,33 +57,32 @@ function window.open(action)
 
     --NOTE: use keepjumps to no add the output buffer
     --to the jumplist
-    vim.fn.execute "keepjumps vertical sb"
+    vim.fn.execute("keepjumps vertical sb " .. buf)
   end
-  local winnr = vim.fn.winnr()
-  local ow = vim.fn.win_getid(winnr)
+  local ow = vim.fn.bufwinid(buf)
   if ow == -1 then
-    log.warn "Something went wrong"
+    log.warn(
+      "A window has not been opened for the output buffer! "
+        .. "Make sure that 'before_displaying_output' "
+        .. "opens a window for the buffer!"
+    )
     return
   end
   oppened_win = ow
+  -- NOTE: set wrap for the oppened window
   vim.api.nvim_win_set_option(ow, "wrap", true)
 
   --NOTE: match some higlights in the output window
   --to distinguish the echoed step and action info from
   --the actual output
   pcall(vim.api.nvim_win_call, ow, function()
-    vim.fn.execute("keepjumps b " .. buf)
+    --NOTE: call this as from the oppened window!
 
     vim.fn.matchadd("Function", "^==> ACTION: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Constant", "^==> STEP: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Comment", "^==> CWD: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
     vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
-
-    if setup.config.after_displaying_output ~= nil then
-      --NOTE: allow the user to
-      setup.config.after_displaying_output(oppened_win)
-    end
   end)
 
   --NOTE: save which action's output has last been
