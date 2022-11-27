@@ -57,21 +57,26 @@ function window.open(action)
 
     --NOTE: use keepjumps to no add the output buffer
     --to the jumplist
-    vim.fn.execute("keepjumps vertical sb " .. buf)
+    vim.fn.execute "keepjumps vertical sb"
   end
-  local ow = vim.fn.bufwinid(buf)
+  local winnr = vim.fn.winnr()
+  local ow = vim.fn.win_getid(winnr)
   if ow == -1 then
-    log.warn("There is no output window for action: " .. action.name)
+    log.warn "Something went wrong"
     return
   end
   oppened_win = ow
+  vim.api.nvim_win_set_option(ow, "wrap", true)
 
   --NOTE: match some higlights in the output window
   --to distinguish the echoed step and action info from
   --the actual output
   pcall(vim.api.nvim_win_call, ow, function()
-    vim.fn.matchadd("Function", "^==> ACTION: \\[\\_.\\{-}\\]$")
-    vim.fn.matchadd("Constant", "^==> STEP: \\[\\_.\\{-}\\]$")
+    vim.fn.execute("keepjumps b " .. buf)
+
+    vim.fn.matchadd("Function", "^==> ACTION: \\[\\_.\\{-}\\n\\n")
+    vim.fn.matchadd("Constant", "^==> STEP: \\[\\_.\\{-}\\n\\n")
+    vim.fn.matchadd("Comment", "^==> CWD: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
     vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
 

@@ -65,6 +65,9 @@ function run.run(action, on_exit)
   local cmd = "echo '==> ACTION: ["
     .. vim.fn.shellescape(action.name)
     .. "]\n' "
+  if cwd ~= nil then
+    cmd = cmd .. " && echo '\n==> CWD: [" .. cwd .. "]\n'"
+  end
   for _, step in ipairs(steps) do
     cmd = cmd
       .. " && "
@@ -84,10 +87,9 @@ function run.run(action, on_exit)
       log.warn(term_buf)
       return false
     end
-  else
-    vim.api.nvim_buf_set_option(term_buf, "modified", false)
-    vim.api.nvim_buf_set_option(term_buf, "modifiable", true)
   end
+  vim.api.nvim_buf_set_option(term_buf, "modified", false)
+  vim.api.nvim_buf_set_option(term_buf, "modifiable", true)
 
   vim.api.nvim_clear_autocmds {
     event = { "TermClose", "TermEnter" },
