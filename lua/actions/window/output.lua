@@ -37,9 +37,12 @@ function window.open(create_buffer, handle_window)
     return
   end
 
-  if vim.api.nvim_win_is_valid(vim.fn.bufwinid(buf)) then
+  local existing_winid = vim.fn.bufwinid(buf)
+  if vim.api.nvim_win_is_valid(existing_winid) then
     -- NOTE: a valid window already exists for the provided
     -- buffer so don't open another one.
+    -- Rather just jump to it.
+    vim.fn.win_gotoid(existing_winid)
     return
   end
 
