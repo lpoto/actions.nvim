@@ -39,6 +39,7 @@ function window.open(action)
   if existing_buf ~= nil and vim.fn.bufexists(existing_buf) == 1 then
     local winnr = vim.fn.bufwinnr(existing_buf)
     if winnr ~= -1 then
+      -- NOTE: the output window is already opened, jump to it
       vim.fn.execute("keepjumps " .. winnr .. "wincmd w", true)
       if winnr == vim.fn.bufwinnr(vim.fn.bufnr()) then
         return
@@ -59,12 +60,17 @@ function window.open(action)
     --to the jumplist
     vim.fn.execute("keepjumps vertical sb " .. buf)
   end
+  -- NOTE: get output window's id, assert that
+  -- the window has been opened in the before_displaying_output
+  -- functions (or the default 'vertical sb' if not defined)
   local ow = vim.fn.bufwinid(buf)
   if ow == -1 then
+    -- NOTE: the output window has not been opened in the
+    -- 'before_displaying_output' function.
     log.warn(
       "A window has not been opened for the output buffer! "
         .. "Make sure that 'before_displaying_output' "
-        .. "opens a window for the buffer!"
+        .. "opens a window for the buffer."
     )
     return
   end
@@ -76,8 +82,6 @@ function window.open(action)
   --to distinguish the echoed step and action info from
   --the actual output
   pcall(vim.api.nvim_win_call, ow, function()
-    --NOTE: call this as from the oppened window!
-
     vim.fn.matchadd("Function", "^==> ACTION: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Constant", "^==> STEP: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Comment", "^==> CWD: \\[\\_.\\{-}\\n\\n")
