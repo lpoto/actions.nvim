@@ -44,14 +44,12 @@ require("actions").setup {
     end
   },
   before_displaying_output = function(bufnr)
-    -- This is useful for oppening a window for the bufnr.
-    -- This function should always open a window for the provided bufnr,
+    -- This function should always open a window for the provided bufnr
+    -- (the number of the action's output buffer),
     -- if this function is not defined, the default is used:
-    vim.fn.execute("keepjumps vertical sb " .. bufnr)
-  end,
-  after_displaying_output = function(winnid)
-    -- Useful for setting some custom higlights or remappings for the output window
-    -- NOTE: this function is called from the output window.
+    local winid = vim.fn.win_getid(vim.fn.winnr())
+    vim.fn.execute("keepjumps vertical sb " .. buf, true)
+    vim.fn.win_gotoid(winid)
   end
 }
 ```

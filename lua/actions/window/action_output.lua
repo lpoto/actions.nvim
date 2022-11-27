@@ -39,10 +39,9 @@ function window.open(action)
   if existing_buf ~= nil and vim.fn.bufexists(existing_buf) == 1 then
     local winnr = vim.fn.bufwinnr(existing_buf)
     if winnr ~= -1 then
+      -- NOTE: the output window is already opened, jump to it
       vim.fn.execute("keepjumps " .. winnr .. "wincmd w", true)
-      if winnr == vim.fn.bufwinnr(vim.fn.bufnr()) then
-        return
-      end
+      return
     end
   end
 
@@ -57,32 +56,41 @@ function window.open(action)
 
     --NOTE: use keepjumps to no add the output buffer
     --to the jumplist
-    vim.fn.execute "keepjumps vertical sb"
+    local winid = vim.fn.win_getid(vim.fn.winnr())
+    vim.fn.execute("keepjumps vertical sb " .. buf, true)
+    vim.fn.win_gotoid(winid)
   end
-  local winnr = vim.fn.winnr()
-  local ow = vim.fn.win_getid(winnr)
+  -- NOTE: get output window's id, assert that
+  -- the window has been opened in the before_displaying_output
+  -- functions (or the default 'vertical sb' if not defined)
+  local ow = vim.fn.bufwinid(buf)
   if ow == -1 then
-    log.warn "Something went wrong"
+    -- NOTE: the output window has not been opened in the
+    -- 'before_displaying_output' function.
+    log.warn(
+      "A window has not been opened for the output buffer! "
+        .. "Make sure that 'before_displaying_output' "
+        .. "opens a window for the buffer."
+    )
     return
   end
   oppened_win = ow
+  -- NOTE: set wrap for the oppened window
   vim.api.nvim_win_set_option(ow, "wrap", true)
 
   --NOTE: match some higlights in the output window
   --to distinguish the echoed step and action info from
   --the actual output
   pcall(vim.api.nvim_win_call, ow, function()
-    vim.fn.execute("keepjumps b " .. buf)
-
     vim.fn.matchadd("Function", "^==> ACTION: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Constant", "^==> STEP: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Comment", "^==> CWD: \\[\\_.\\{-}\\n\\n")
     vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
     vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
 
-    if setup.config.after_displaying_output ~= nil then
-      --NOTE: allow the user to
-      setup.config.after_displaying_output(oppened_win)
+    if vim.fn.winwidth(ow) < 50 and vim.o.columns >= 70 then
+      -- NOTE: make sure the output window is at least 50 columns wide
+      vim.fn.execute("vertical resize " .. 50, true)
     end
   end)
 
