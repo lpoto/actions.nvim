@@ -41,9 +41,7 @@ function window.open(action)
     if winnr ~= -1 then
       -- NOTE: the output window is already opened, jump to it
       vim.fn.execute("keepjumps " .. winnr .. "wincmd w", true)
-      if winnr == vim.fn.bufwinnr(vim.fn.bufnr()) then
-        return
-      end
+      return
     end
   end
 
@@ -58,7 +56,9 @@ function window.open(action)
 
     --NOTE: use keepjumps to no add the output buffer
     --to the jumplist
-    vim.fn.execute("keepjumps vertical sb " .. buf)
+    local winid = vim.fn.win_getid(vim.fn.winnr())
+    vim.fn.execute("keepjumps vertical sb " .. buf, true)
+    vim.fn.win_gotoid(winid)
   end
   -- NOTE: get output window's id, assert that
   -- the window has been opened in the before_displaying_output
