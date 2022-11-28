@@ -72,7 +72,7 @@ function run.run(action, on_exit)
     cmd = cmd
       .. " && "
       .. "echo '\n==> STEP: ["
-      .. vim.fn.shellescape(step)
+      .. step:gsub("'", "'\\''")
       .. "]\n'"
     cmd = cmd .. " && " .. step
   end

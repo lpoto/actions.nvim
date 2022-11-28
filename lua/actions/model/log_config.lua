@@ -7,25 +7,25 @@
 ---@brief ]]
 
 ---@class Actions_log_config
----@field level number: a vim.log.levels value (default: INFO)
----@field prefix string: Prefix added before logs (default: 'Actions.nvim')
----@field silent boolean: Whether the logging is disabled (default: false)
+---@field level number: a vim.log.levels value (default: vim.log.levels.INFO).
+---@field prefix string: Prefix added before logs (default: "Actions.nvim").
+---@field silent boolean: Whether the logging is disabled (default: false).
 
 ---@type Actions_log_config
-local Actions_log_config = {
+local M = {
   level = vim.log.levels.INFO,
   prefix = "Actions.nvim",
   silent = false,
 }
-Actions_log_config.__index = Actions_log_config
+M.__index = M
 
 ---Create a default log config
 ---
 ---@return Actions_log_config
-function Actions_log_config.__default()
+function M.__default()
   ---@type Actions_log_config
   local cfg = {}
-  setmetatable(cfg, Actions_log_config)
+  setmetatable(cfg, M)
   return cfg
 end
 
@@ -34,10 +34,10 @@ end
 ---@param o table: Table from which to parse the config
 ---@return Actions_log_config
 ---@return string|nil: An error that occured while creating the config
-function Actions_log_config.__create(o)
+function M.__create(o)
   ---@type Actions_log_config
   local cfg = {}
-  setmetatable(cfg, Actions_log_config)
+  setmetatable(cfg, M)
 
   if type(o) ~= "table" then
     return cfg, "log config should be a table!"
@@ -66,4 +66,4 @@ function Actions_log_config.__create(o)
   return cfg, nil
 end
 
-return Actions_log_config
+return M

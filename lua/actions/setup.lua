@@ -33,7 +33,7 @@ function setup.get_available(temp_buf)
   ---@type string?
   local e = nil
   local check = function()
-    for name, action_f in pairs(setup.config.action) do
+    for name, action_f in pairs(setup.config.actions) do
       local action, err = Action.__create(name, action_f())
       if err ~= nil then
         e = err
@@ -59,7 +59,7 @@ end
 ---@return Action?: action identified by the provided name
 ---@return string?: Error that occured while fetching the action
 function setup.get_action(name, temp_buf)
-  local action_f = setup.config.action[name]
+  local action_f = setup.config.actions[name]
   if action_f == nil then
     return nil, "Action '" .. name .. "' does not exist!"
   end

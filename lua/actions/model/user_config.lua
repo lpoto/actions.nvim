@@ -5,42 +5,90 @@ local Actions_mappings_config = require "actions.model.mappings_config"
 ---@config {["name"] = "USER CONFIG"}
 
 ---@brief [[
----Actions_user_config is an object that represents a plugin configuration created
----by the user. The config's actions are functions returning |Action| objects, so 
+---Actions_user_config is an object that represents a plugin configuration
+---created by the user.
+---The config's actions are functions returning |Action| objects, so
 ---that they may be loaded when requested, which allows actions relative to
 ---the current context.
+---
+---Default value:
+---<code>
+---  {
+---    log = {
+---      level = vim.log.levels.INFO,
+---      prefix = "Actions.nvim",
+---      silent = false,
+---    },
+---    mappings = {
+---      run_kill = "<Enter>",
+---      show_output = "o",
+---      show_definition = "d",
+---    },
+---    actions = {
+---      ["Example action"] = function()
+---        return {
+---          filetypes = { "help" },
+---          steps = {
+---            "echo 'Current file: " .. (vim.fn.expand "%:p") .. "'"
+---          }
+---        }
+---      end
+---    },
+---    -- open a window for the output buffer,
+---    -- but keep focus on the current window
+---    before_displaying_output = function(bufnr)
+---      local winid = vim.fn.win_getid(vim.fn.winnr())
+---      vim.fn.execute("keepjumps vertical sb " .. bufnr, true)
+---      vim.fn.win_gotoid(winid)
+---    end,
+---  }
+---</code>
 ---@brief ]]
 
 ---@class Actions_user_config
----@field action table: A table of functions returning |Action| objects
----@field before_displaying_output function|nil: A function that recieves the output's buffer number and opens it's window
----@field log Actions_log_config: |Actions_log_config| for the plugin's logger
----@field mappings Actions_mappings_config: |Actions_mappings_config| for keymaps in the action's windows
+---@field actions table: A table with action names as keys and functions returning |Action| objects as values.
+---@field before_displaying_output function: Should always open a window for the output buffer.
+---@field log Actions_log_config: |Actions_log_config| for the plugin's logger.
+---@field mappings Actions_mappings_config: |Actions_mappings_config| for keymaps in the action's windows.
 
 ---@type Actions_user_config
-local Actions_user_config = {
+local M = {
   log = Actions_log_config.__default(),
-  action = {},
   mappings = Actions_mappings_config.__default(),
+  actions = {
+    ["Example action"] = function()
+      return {
+        filetypes = { "help" },
+        steps = {
+          "echo 'Current file: " .. (vim.fn.expand "%:p") .. "'",
+        },
+      }
+    end,
+  },
+  before_displaying_output = function(bufnr)
+    local winid = vim.fn.win_getid(vim.fn.winnr())
+    vim.fn.execute("keepjumps vertical sb " .. bufnr, true)
+    vim.fn.win_gotoid(winid)
+  end,
 }
-Actions_user_config.__index = Actions_user_config
+M.__index = M
 
 ---Create a default user config
 ---
 ---@return Actions_user_config
-function Actions_user_config.__default()
+function M.__default()
   local cfg = {}
-  setmetatable(cfg, Actions_user_config)
+  setmetatable(cfg, M)
   return cfg
 end
 
 ---@param o table
 ---@return Actions_user_config
 ---@return string|nil: An error that occured while creating the config
-function Actions_user_config.__create(o)
+function M.__create(o)
   ---@type Actions_user_config
   local cfg = {}
-  setmetatable(cfg, Actions_user_config)
+  setmetatable(cfg, M)
 
   if type(o) ~= "table" then
     return cfg, "User config should be a table!"
@@ -52,21 +100,18 @@ function Actions_user_config.__create(o)
         return cfg, e
       end
       cfg.log = log
-    elseif key == "action" or key == "actions" then
+    elseif key == "actions" then
       if type(value) ~= "table" then
         return cfg, "actions should be a table!"
       end
       local actions = {}
       for k, v in pairs(value) do
-        if type(k) ~= "string" or string.len(k) == 0 then
-          return cfg, "Action should have a non-empty string name!"
-        end
         if type(v) ~= "function" then
-          return cfg, "Action '" .. k .. "'s config should be a function!"
+          return cfg, "Action's config should be a function!"
         end
         actions[k] = v
       end
-      cfg.action = actions
+      cfg.actions = actions
     elseif key == "before_displaying_output" then
       if type(value) ~= "function" then
         return cfg, "before_displaying_output should be a function!"
@@ -90,14 +135,14 @@ end
 ---
 ---@param o1 Actions_user_config
 ---@param o2 Actions_user_config
-function Actions_user_config.__merge(o1, o2)
+function M.__merge(o1, o2)
   for k, v in pairs(o2) do
-    if k == "action" or k == "actions" then
-      if o1.action == nil then
-        o1.action = v
+    if k == "actions" then
+      if o1.actions == nil then
+        o1.actions = v
       else
         for k2, v2 in pairs(v) do
-          o1.action[k2] = v2
+          o1.actions[k2] = v2
         end
       end
     else
@@ -106,4 +151,4 @@ function Actions_user_config.__merge(o1, o2)
   end
 end
 
-return Actions_user_config
+return M

@@ -7,34 +7,34 @@
 ---@brief ]]
 
 ---@class Actions_mappings_config
----@field run_kill string: Run or kill the action under the cursor in available actions window (default: "<Enter>")
----@field show_output string: Show output of the action under the cursor (default: "o")
----@field show_definition string: Show definition of the action under the cursor (default: "d")
+---@field run_kill string: Run or kill the action under the cursor in available actions window.
+---@field show_output string: Show output of the action under the cursor.
+---@field show_definition string: Show definition of the action under the cursor.
 
 ---@type Actions_mappings_config
-local Actions_mappings_config = {
+local M = {
   run_kill = "<Enter>",
   show_output = "o",
   show_definition = "d",
 }
-Actions_mappings_config.__index = Actions_mappings_config
+M.__index = M
 
 ---Create a default mappings config
 ---
 ---@return  Actions_mappings_config
-function Actions_mappings_config.__default()
+function M.__default()
   ---@type Actions_mappings_config
   local cfg = {}
-  setmetatable(cfg, Actions_mappings_config)
+  setmetatable(cfg, M)
   return cfg
 end
 
 ---@param o table
 ---@return Actions_mappings_config
 ---@return string|nil: An error that occured while creating the config
-function Actions_mappings_config.__create(o)
+function M.__create(o)
   ---@type Actions_mappings_config
-  local cfg = Actions_mappings_config.__default()
+  local cfg = M.__default()
   if type(o) ~= "table" then
     return cfg, "Mappings config should be a table!"
   end
@@ -55,4 +55,4 @@ function Actions_mappings_config.__create(o)
   return cfg, nil
 end
 
-return Actions_mappings_config
+return M

@@ -46,21 +46,9 @@ function window.open(create_buffer, handle_window)
     return
   end
 
-  if setup.config.before_displaying_output ~= nil then
-    -- NOTE: allow user defining how the output
-    -- window should be displayed.
-
-    setup.config.before_displaying_output(buf)
-  else
-    -- NOTE: oppen the output window in a vertical
-    -- split by default.
-
-    -- NOTE: use keepjumps to no add the output buffer
-    -- to the jumplist
-    local winid = vim.fn.win_getid(vim.fn.winnr())
-    vim.fn.execute("keepjumps vertical sb " .. buf, true)
-    vim.fn.win_gotoid(winid)
-  end
+  -- NOTE: allow user defining how the output
+  -- window should be displayed.
+  setup.config.before_displaying_output(buf)
 
   local ow = vim.fn.bufwinid(buf)
   if ow == -1 then

@@ -2,23 +2,32 @@
 ---@config {["name"] = "ACTION"}
 
 ---@brief [[
----Action is an object that represents a sequence of commands and the environment
----in which they will be run.
+---Action is an object that represents a sequence of commands
+---and the environment in which they will be run.
+---Example action in the |User_config| table:
+---<code>
+---  {
+---    cwd = "/temp",
+---    env = {"HELLO_WORLD" = "Hello World"},
+---    clear_env = false,
+---    filetypes = {"lua", "bash"},
+---    patterns = {".*.lua", ".*.sh"},
+---    steps = {
+---      "echo 'Hello world!'",
+---      {"echo", "$HELLO_WORLD", "again!"}
+---    }
+---  }
+---</code>
 ---@brief ]]
 
 ---@class Action
----@field name string: Name of the action.
----@field env table|nil: A table of environment variables
----@field clear_env boolean: Whether env defined the whole environment and other environment variables should be deleted (default: false)
----@field steps table: A table of commands (strings or tables) to be executed in order
----@field cwd string|nil: The working directory of the action
----@field filetypes table|nil: Filetypes in which the action is available
----@field patterns table|nil: Action is available ony in files with names that match a pattern in this table of lua patterns
-
----@brief [[
----Action is an object that represents a sequence of commands and the environment
----in which they will be run.
----@brief ]]
+---@field name string: This is taken from the key in the |User_config| table.
+---@field env table|nil: A table of environment variables.
+---@field clear_env boolean: Whether env defined the whole environment and other environment variables should be deleted (default: false).
+---@field steps table: A table of commands (strings or tables) to be executed in order.
+---@field cwd string|nil: The working directory of the action.
+---@field filetypes table|nil: Filetypes in which the action is available.
+---@field patterns table|nil: Action is available ony in files with names that match a pattern in this table of lua patterns.
 
 ---@type Action
 local Action = {}
@@ -26,10 +35,10 @@ Action.__index = Action
 
 ---Create an action from a table
 ---
----@param name string: The name of the action
----@param o table: Action's fields
+---@param o table: Action's fields.
+---@param name string: Action's name.
 ---@return Action
----@return string?: An error that occured when creating an Action
+---@return string?: An error that occured when creating an Action.
 function Action.__create(name, o)
   ---@type Action
   local a = {}
@@ -39,7 +48,7 @@ function Action.__create(name, o)
   --if any errors occur, stop with the creation and return
   --the error string.
 
-  if type(name) ~= "string" then
+  if name == nil or type(name) ~= "string" then
     return a, "Action's 'name' should be a string!"
   end
   if type(o) ~= "table" then
@@ -47,7 +56,7 @@ function Action.__create(name, o)
   end
   if string.len(name) > 35 then
     return a,
-      "Action '" .. name .. "'s name should not be longer than 35 characters!"
+      "Action '" .. name .. "'s name should not be longer than 35 chars!"
   end
   a.name = name
   if o.filetypes ~= nil and type(o.filetypes) ~= "table" then
