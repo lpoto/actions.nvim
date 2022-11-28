@@ -7,9 +7,9 @@
 ---@brief ]]
 
 ---@class Actions_log_config
----@field level number: a vim.log.levels value (default: INFO)
----@field prefix string: Prefix added before logs (default: 'Actions.nvim')
----@field silent boolean: Whether the logging is disabled (default: false)
+---@field level number: a vim.log.levels value (default: INFO).
+---@field prefix string: Prefix added before logs (default: 'Actions.nvim').
+---@field silent boolean: Whether the logging is disabled (default: false).
 
 ---@type Actions_log_config
 local Actions_log_config = {

@@ -7,9 +7,12 @@
 ---@brief ]]
 
 ---@class Actions_mappings_config
----@field run_kill string: Run or kill the action under the cursor in available actions window (default: "<Enter>")
----@field show_output string: Show output of the action under the cursor (default: "o")
----@field show_definition string: Show definition of the action under the cursor (default: "d")
+---@field run_kill string: Run or kill the action under the cursor
+---in available actions window (default: "<Enter>").
+---@field show_output string: Show output of the action
+---under the cursor (default: "o").
+---@field show_definition string: Show definition of the
+---action under the cursor (default: "d").
 
 ---@type Actions_mappings_config
 local Actions_mappings_config = {

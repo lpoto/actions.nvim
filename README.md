@@ -14,7 +14,9 @@ With [vim.plug](https://github.com/junegunn/vim-plug)
 Plug "lpoto/actions.nvim"
 ```
 
-###
+
+##
+
 
 See `:help actions.nvim` or [help](./doc/actions.txt).
 
