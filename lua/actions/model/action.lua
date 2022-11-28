@@ -4,10 +4,22 @@
 ---@brief [[
 ---Action is an object that represents a sequence of commands
 ---and the environment in which they will be run.
+---Example action in the |User_config| table:
 ---<code>
 ---  {
----    name = "Hello world action",
----    cwd = "temp"
+---    ["Hello world action"] = function()
+---    return {
+---      cwd = "/temp",
+---      env = {"HELLO_WORLD" = "Hello World"},
+---      clear_env = false,
+---      filetypes = {"lua", "bash"},
+---      patterns = {".*.lua", ".*.sh"},
+---      steps = {
+---        "echo 'Hello world!'",
+---        {"echo", "$HELLO_WORLD", "again!"}
+---      }
+---    }
+---    end
 ---  }
 ---</code>
 ---@brief ]]

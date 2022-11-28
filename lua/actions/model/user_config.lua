@@ -13,7 +13,7 @@ local Actions_mappings_config = require "actions.model.mappings_config"
 ---@brief ]]
 
 ---@class Actions_user_config
----@field actions table: A table of functions returning |Action| objects.
+---@field actions table: A table with action names as keys and functions returning |Action| objects as values.
 ---@field before_displaying_output function: See |before_displaying_output|.
 ---@field log Actions_log_config: |Actions_log_config| for the plugin's logger.
 ---@field mappings Actions_mappings_config: |Actions_mappings_config| for keymaps in the action's windows.
@@ -28,10 +28,11 @@ M.__index = M
 
 ---This function should always open a window for the provided
 ---buffer number.
+---
 ---Default value:
 ---<code>
----  -- Opens a new vertical window but keeps focus on the current window
----  function()
+---  --Opens a new vertical window but keeps focus on the current window
+---  function(bufnr)
 ---    local winid = vim.fn.win_getid(vim.fn.winnr())
 ---    vim.fn.execute("keepjumps vertical sb " .. bufnr, true)
 ---    vim.fn.win_gotoid(winid)
