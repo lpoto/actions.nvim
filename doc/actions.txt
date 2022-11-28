@@ -75,7 +75,7 @@ Actions_user_config                                      *Actions_user_config*
 
     Fields: ~
         {action}                   (table)                    A table of
-                                                              function
+                                                              functions
                                                               returning
                                                               |Action| objects
         {before_displaying_output} (function|nil)             A function that
