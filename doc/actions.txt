@@ -40,25 +40,38 @@ actions.toggle_last_output()                    *actions.toggle_last_output()*
 ACTION                                                    *actions.model.action*
 
 Action is an object that represents a sequence of commands and the environment
-in which they will be run. Action is an object that represents a sequence of
-commands and the environment in which they will be run.
+in which they will be run. Example action in the |User_config| table:
+>
+ {
+   cwd = "/temp",
+   env = {"HELLO_WORLD" = "Hello World"},
+   clear_env = false,
+   filetypes = {"lua", "bash"},
+   patterns = {".*.lua", ".*.sh"},
+   steps = {
+     "echo 'Hello world!'",
+     {"echo", "$HELLO_WORLD", "again!"}
+   }
+ }
+<
 
 Action                                                                *Action*
 
 
     Fields: ~
-        {name}      (string)      Name of the action.
-        {env}       (table|nil)   A table of environment variables
+        {name}      (string)      This is taken from the key in the
+                                  |User_config| table.
+        {env}       (table|nil)   A table of environment variables.
         {clear_env} (boolean)     Whether env defined the whole environment
                                   and other environment variables should be
-                                  deleted (default: false)
+                                  deleted (default: false).
         {steps}     (table)       A table of commands (strings or tables) to
-                                  be executed in order
-        {cwd}       (string|nil)  The working directory of the action
-        {filetypes} (table|nil)   Filetypes in which the action is available
+                                  be executed in order.
+        {cwd}       (string|nil)  The working directory of the action.
+        {filetypes} (table|nil)   Filetypes in which the action is available.
         {patterns}  (table|nil)   Action is available ony in files with names
                                   that match a pattern in this table of lua
-                                  patterns
+                                  patterns.
 
 
 
@@ -70,28 +83,63 @@ by the user. The config's actions are functions returning |Action| objects, so
 that they may be loaded when requested, which allows actions relative to the
 current context.
 
+Default value:
+>
+ {
+   log = {
+     level = vim.log.levels.INFO,
+     prefix = "Actions.nvim",
+     silent = false,
+   },
+   mappings = {
+     run_kill = "<Enter>",
+     show_output = "o",
+     show_definition = "d",
+   },
+   actions = {
+     ["Example action"] = function()
+       return {
+         filetypes = { "help" },
+         steps = {
+           "echo 'Current file: " .. (vim.fn.expand "%:p") .. "'"
+         }
+       }
+     end
+   },
+   -- open a window for the output buffer,
+   -- but keep focus on the current window
+   before_displaying_output = function(bufnr)
+     local winid = vim.fn.win_getid(vim.fn.winnr())
+     vim.fn.execute("keepjumps vertical sb " .. bufnr, true)
+     vim.fn.win_gotoid(winid)
+   end,
+ }
+<
+
 Actions_user_config                                      *Actions_user_config*
 
 
     Fields: ~
-        {action}                   (table)                    A table of
+        {actions}                  (table)                    A table with
+                                                              action names as
+                                                              keys and
                                                               functions
                                                               returning
                                                               |Action| objects
-        {before_displaying_output} (function|nil)             A function that
-                                                              recieves the
-                                                              output's buffer
-                                                              number and opens
-                                                              it's window
+                                                              as values.
+        {before_displaying_output} (function)                 Should always
+                                                              open a window
+                                                              for the output
+                                                              buffer.
         {log}                      (Actions_log_config)       
                                                               |Actions_log_config|
                                                               for the plugin's
-                                                              logger
+                                                              logger.
         {mappings}                 (Actions_mappings_config)  
                                                               |Actions_mappings_config|
                                                               for keymaps in
                                                               the action's
-                                                              windows
+                                                              windows.
 
 
 
@@ -105,9 +153,11 @@ Actions_log_config                                        *Actions_log_config*
 
 
     Fields: ~
-        {level}  (number)   a vim.log.levels value (default: INFO)
-        {prefix} (string)   Prefix added before logs (default: 'Actions.nvim')
-        {silent} (boolean)  Whether the logging is disabled (default: false)
+        {level}  (number)   a vim.log.levels value (default:
+                            vim.log.levels.INFO).
+        {prefix} (string)   Prefix added before logs (default:
+                            "Actions.nvim").
+        {silent} (boolean)  Whether the logging is disabled (default: false).
 
 
 
@@ -122,12 +172,11 @@ Actions_mappings_config                              *Actions_mappings_config*
 
     Fields: ~
         {run_kill}        (string)  Run or kill the action under the cursor in
-                                    available actions window (default:
-                                    "<Enter>")
-        {show_output}     (string)  Show output of the action under the cursor
-                                    (default: "o")
+                                    available actions window.
+        {show_output}     (string)  Show output of the action under the
+                                    cursor.
         {show_definition} (string)  Show definition of the action under the
-                                    cursor (default: "d")
+                                    cursor.
 
 
 
