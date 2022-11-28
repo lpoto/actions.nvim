@@ -5,6 +5,9 @@ local output_window = require "actions.window.output"
 
 local actions = {}
 
+---@tag actions.nvim
+---@config {["name"] = "INTRODUCTION"}
+
 ---@brief [[
 ---Actions.nvim helps you set up custom commands and their environments
 ---relative to the current context.
@@ -19,13 +22,10 @@ local actions = {}
 ---
 ---@brief ]]
 
----@tag actions.nvim
----@config {["name"] = "INTRODUCTION"}
-
----Set up the plugin and add actions with a User_config object.
+---Set up the plugin and add actions with a |Actions_user_config| object.
+---Calling this function multiple times will merge the added configs.
 ---
----@param user_config table
----@see User_config
+---@param user_config Actions_user_config: See |Actions_user_config|.
 function actions.setup(user_config)
   local err = setup.parse(user_config)
   if err ~= nil then

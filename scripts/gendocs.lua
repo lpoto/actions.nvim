@@ -5,10 +5,10 @@ local docs = {}
 docs.test = function()
   local input_files = {
     "./lua/actions/init.lua",
+    "./lua/actions/model/action.lua",
     "./lua/actions/model/user_config.lua",
     "./lua/actions/model/log_config.lua",
     "./lua/actions/model/mappings_config.lua",
-    "./lua/actions/model/action.lua",
   }
   local output_file = "./doc/actions.txt"
   local output_file_handle = io.open(output_file, "w")

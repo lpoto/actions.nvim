@@ -1,7 +1,10 @@
 name: Generate documentation
 
+# this is inspired by https://github.com/nvim-telescope/telescope.nvim
+
 on:
   push:
+    # never run this on main branch
     branches-ignore:
       - main
 
@@ -25,6 +28,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.url }}-${{ hashFiles('todays-date') }}
 
       - name: Prepare
+        # add tree-sitter which is used for generating docs
         run: |
           test -d _neovim || {
             mkdir -p _neovim
@@ -36,7 +40,6 @@ jobs:
           ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
       - name: Build parser
         run: |
-          # We have to build the parser every single time to keep up with parser changes
           cd ~/.local/share/nvim/site/pack/vendor/start/tree-sitter-lua
           make dist
           cd -
@@ -45,9 +48,9 @@ jobs:
           export PATH="${PWD}/_neovim/bin:${PATH}"
           export VIM="${PWD}/_neovim/share/nvim/runtime"
           nvim --version
-          make docgen
-      # inspired by nvim-lspconfigs
+          ./scripts/gendocs.sh
       - name: Update documentation
+        # push the changes
         env:
           COMMIT_MSG: |
             [docgen] Update doc/actions.txt
