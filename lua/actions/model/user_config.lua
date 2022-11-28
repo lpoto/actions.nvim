@@ -12,7 +12,7 @@ local Actions_mappings_config = require "actions.model.mappings_config"
 ---@brief ]]
 
 ---@class Actions_user_config
----@field action table: A table of function returning |Action| objects
+---@field action table: A table of functions returning |Action| objects
 ---@field before_displaying_output function|nil: A function that recieves the output's buffer number and opens it's window
 ---@field log Actions_log_config: |Actions_log_config| for the plugin's logger
 ---@field mappings Actions_mappings_config: |Actions_mappings_config| for keymaps in the action's windows
