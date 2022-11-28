@@ -1,0 +1,134 @@
+================================================================================
+INTRODUCTION                                                      *actions.nvim*
+
+Actions.nvim helps you set up custom commands and their environments relative
+to the current context. All the currently available actions may be displayed in
+a floating window from which they may be executed, killed and their outputs or
+definitions shown.
+
+Getting started with actions:
+ 1. |actions.setup|
+ 2. |actions.available_actions|
+ 3. |actions.toggle_last_output|
+
+
+actions.setup({user_config})                                 *actions.setup()*
+    Set up the plugin and add actions with a |Actions_user_config| object.
+    Calling this function multiple times will merge the added configs.
+
+
+
+    Parameters: ~
+        {user_config} (Actions_user_config)  See |Actions_user_config|.
+
+
+actions.available_actions()                      *actions.available_actions()*
+    Opens a floating window with all the available actions. From that window
+    the actions may then be executed, killed and their output or definition
+    shown.
+
+
+
+actions.toggle_last_output()                    *actions.toggle_last_output()*
+    Reopens the last output window of the last run action, or the last oppened
+    output buffer.
+
+
+
+
+================================================================================
+ACTION                                                    *actions.model.action*
+
+Action is an object that represents a sequence of commands and the environment
+in which they will be run. Action is an object that represents a sequence of
+commands and the environment in which they will be run.
+
+Action                                                                *Action*
+
+
+    Fields: ~
+        {name}      (string)      Name of the action.
+        {env}       (table|nil)   A table of environment variables
+        {clear_env} (boolean)     Whether env defined the whole environment
+                                  and other environment variables should be
+                                  deleted (default: false)
+        {steps}     (table)       A table of commands (strings or tables) to
+                                  be executed in order
+        {cwd}       (string|nil)  The working directory of the action
+        {filetypes} (table|nil)   Filetypes in which the action is available
+        {patterns}  (table|nil)   Action is available ony in files with names
+                                  that match a pattern in this table of lua
+                                  patterns
+
+
+
+================================================================================
+USER CONFIG                                          *actions.model.user_config*
+
+Actions_user_config is an object that represents a plugin configuration created
+by the user. The config's actions are functions returning |Action| objects, so
+that they may be loaded when requested, which allows actions relative to the
+current context.
+
+Actions_user_config                                      *Actions_user_config*
+
+
+    Fields: ~
+        {action}                   (table)                    A table of
+                                                              functions
+                                                              returning
+                                                              |Action| objects
+        {before_displaying_output} (function|nil)             A function that
+                                                              recieves the
+                                                              output's buffer
+                                                              number and opens
+                                                              it's window
+        {log}                      (Actions_log_config)       
+                                                              |Actions_log_config|
+                                                              for the plugin's
+                                                              logger
+        {mappings}                 (Actions_mappings_config)  
+                                                              |Actions_mappings_config|
+                                                              for keymaps in
+                                                              the action's
+                                                              windows
+
+
+
+================================================================================
+LOG CONFIG                                            *actions.model.log_config*
+
+Actions_log_config is an object that represents a configuration for the
+plugin's logger.
+
+Actions_log_config                                        *Actions_log_config*
+
+
+    Fields: ~
+        {level}  (number)   a vim.log.levels value (default: INFO)
+        {prefix} (string)   Prefix added before logs (default: 'Actions.nvim')
+        {silent} (boolean)  Whether the logging is disabled (default: false)
+
+
+
+================================================================================
+ACTIONS MAPPING CONFIG                           *actions.model.mappings_config*
+
+Actions_mappings_config is a table of keymaps used in normal mode in the
+plugin's windows.
+
+Actions_mappings_config                              *Actions_mappings_config*
+
+
+    Fields: ~
+        {run_kill}        (string)  Run or kill the action under the cursor in
+                                    available actions window (default:
+                                    "<Enter>")
+        {show_output}     (string)  Show output of the action under the cursor
+                                    (default: "o")
+        {show_definition} (string)  Show definition of the action under the
+                                    cursor (default: "d")
+
+
+
+ vim:tw=78:ts=8:ft=help:norl:

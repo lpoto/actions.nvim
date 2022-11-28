@@ -296,17 +296,17 @@ set_outter_window_lines = function(width, actions)
   local lines = {
     add_suffix(
       " Run or kill an action with: ",
-      setup.config.mappings.available_actions.run_kill .. " ",
+      setup.config.mappings.run_kill .. " ",
       width
     ),
     add_suffix(
       " See the output of an action with: ",
-      setup.config.mappings.available_actions.show_output .. " ",
+      setup.config.mappings.show_output .. " ",
       width
     ),
     add_suffix(
       " See the action's definition with: ",
-      setup.config.mappings.available_actions.show_definition .. " ",
+      setup.config.mappings.show_definition .. " ",
       width
     ),
     string.rep("-", width),
@@ -411,35 +411,35 @@ set_window_options = function()
     }
   )
   -- NOTE: select the action under the cursor with
-  -- setup.config.mappings.available_actions.run_kill
+  -- setup.config.mappings.run_kill
   -- if the action is running this will kill it, otherwise
   -- it will kill it
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    setup.config.mappings.available_actions.run_kill,
+    setup.config.mappings.run_kill,
     "<CMD>lua require('actions.window.available_actions')"
       .. ".select_action_under_cursor()<CR>",
     {}
   )
   -- NOTE: show the output of an action with (if there is any)
-  -- setup.config.mappings.available_actions.show_output
+  -- setup.config.mappings.show_output
   -- this will close the actions window and oppen
   -- the output in the current window
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    setup.config.mappings.available_actions.show_output,
+    setup.config.mappings.show_output,
     "<CMD>lua require('actions.window.available_actions')"
       .. ".output_of_action_under_cursor()<CR>",
     {}
   )
   -- NOTE: show the definition of an action with
-  -- setup.config.mappings.available_actions.show_definition
+  -- setup.config.mappings.show_definition
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    setup.config.mappings.available_actions.show_definition,
+    setup.config.mappings.show_definition,
     "<CMD>lua require('actions.window.available_actions')"
       .. ".definition_of_action_under_cursor()<CR>",
     {}

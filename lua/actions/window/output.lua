@@ -82,6 +82,15 @@ function window.open(create_buffer, handle_window)
 
   -- NOTE: save the provided functions to be used
   -- when toggling the previously oppened output window
+  window.set_previous(create_buffer, handle_window)
+end
+
+---Set the functions used to open an output buffer.
+---These will be used when toggling the output.
+---
+---@param create_buffer function
+---@param handle_window function
+function window.set_previous(create_buffer, handle_window)
   previous_handle_window = handle_window
   previous_create_buffer = create_buffer
 end

@@ -52,9 +52,7 @@ function executor.start(name, prev_buf, on_exit)
     return false
   end
   if run.run(action, on_exit) == true then
-    if action_output_window.last_oppened == nil then
-      action_output_window.last_oppened = name
-    end
+    action_output_window.set_as_previous(action)
     return true
   end
   return false

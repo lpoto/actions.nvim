@@ -1,14 +1,26 @@
----An Action represents a sequence
----of jobs to be executed synchronously.
----
+---@tag actions.model.action
+---@config {["name"] = "ACTION"}
+
+---@brief [[
+---Action is an object that represents a sequence of commands and the environment
+---in which they will be run.
+---@brief ]]
+
 ---@class Action
----@field name string
----@field env table|nil
----@field clear_env boolean|nil
----@field steps table
----@field cwd string|nil
----@field filetypes table|nil
----@field patterns table|nil
+---@field name string: Name of the action.
+---@field env table|nil: A table of environment variables
+---@field clear_env boolean: Whether env defined the whole environment and other environment variables should be deleted (default: false)
+---@field steps table: A table of commands (strings or tables) to be executed in order
+---@field cwd string|nil: The working directory of the action
+---@field filetypes table|nil: Filetypes in which the action is available
+---@field patterns table|nil: Action is available ony in files with names that match a pattern in this table of lua patterns
+
+---@brief [[
+---Action is an object that represents a sequence of commands and the environment
+---in which they will be run.
+---@brief ]]
+
+---@type Action
 local Action = {}
 Action.__index = Action
 
@@ -18,7 +30,7 @@ Action.__index = Action
 ---@param o table: Action's fields
 ---@return Action
 ---@return string?: An error that occured when creating an Action
-function Action.create(name, o)
+function Action.__create(name, o)
   ---@type Action
   local a = {}
   setmetatable(a, Action)
@@ -99,9 +111,10 @@ end
 ---the current filename matches it's patterns and the current filetype
 ---matches it's filetypes.
 ---
+---@param a Action
 ---@return boolean
-function Action:is_available()
-  local filetypes = self.filetypes
+function Action.__is_available(a)
+  local filetypes = a.filetypes
   local current_filetype = vim.o["filetype"]
   local continue = filetypes == nil or next(filetypes) == nil
   if filetypes ~= nil then
@@ -115,7 +128,7 @@ function Action:is_available()
   if continue == false then
     return false
   end
-  local patterns = self.patterns
+  local patterns = a.patterns
   if patterns == nil or next(patterns) == nil then
     return true
   end

@@ -1,29 +1,42 @@
----@class Available_actions_mappings_config
-local Available_actions_mappings_config = {
+---@tag actions.model.mappings_config
+---@config {["name"] = "ACTIONS MAPPING CONFIG"}
+
+---@brief [[
+---Actions_mappings_config is a table of keymaps used in normal
+---mode in the plugin's windows.
+---@brief ]]
+
+---@class Actions_mappings_config
+---@field run_kill string: Run or kill the action under the cursor in available actions window (default: "<Enter>")
+---@field show_output string: Show output of the action under the cursor (default: "o")
+---@field show_definition string: Show definition of the action under the cursor (default: "d")
+
+---@type Actions_mappings_config
+local Actions_mappings_config = {
   run_kill = "<Enter>",
   show_output = "o",
   show_definition = "d",
 }
-Available_actions_mappings_config.__index = Available_actions_mappings_config
+Actions_mappings_config.__index = Actions_mappings_config
 
----Create a default available actions mappings config
+---Create a default mappings config
 ---
----@return Available_actions_mappings_config
-function Available_actions_mappings_config.default()
-  ---@type Available_actions_mappings_config
+---@return  Actions_mappings_config
+function Actions_mappings_config.__default()
+  ---@type Actions_mappings_config
   local cfg = {}
-  setmetatable(cfg, Available_actions_mappings_config)
+  setmetatable(cfg, Actions_mappings_config)
   return cfg
 end
 
 ---@param o table
----@return Available_actions_mappings_config
+---@return Actions_mappings_config
 ---@return string|nil: An error that occured while creating the config
-function Available_actions_mappings_config.create(o)
-  ---@type Available_actions_mappings_config
-  local cfg = Available_actions_mappings_config.default()
+function Actions_mappings_config.__create(o)
+  ---@type Actions_mappings_config
+  local cfg = Actions_mappings_config.__default()
   if type(o) ~= "table" then
-    return cfg, "Available actions mappings config should be a table!"
+    return cfg, "Mappings config should be a table!"
   end
   for key, value in pairs(o) do
     if type(value) ~= "string" then
@@ -42,43 +55,4 @@ function Available_actions_mappings_config.create(o)
   return cfg, nil
 end
 
----@class Mappings_config
-local Mappings_config = {
-  available_actions = Available_actions_mappings_config.default(),
-}
-Mappings_config.__index = Mappings_config
-
----Create a default mappings config
----
----@return  Mappings_config
-function Mappings_config.default()
-  ---@type Mappings_config
-  local cfg = {}
-  setmetatable(cfg, Mappings_config)
-  return cfg
-end
-
----@param o table
----@return Mappings_config
----@return string|nil: An error that occured while creating the config
-function Mappings_config.create(o)
-  ---@type Mappings_config
-  local cfg = Mappings_config.default()
-  if type(o) ~= "table" then
-    return cfg, "Mappings config should be a table!"
-  end
-  for key, value in pairs(o) do
-    if key == "available_actions" then
-      local a, e = Available_actions_mappings_config.create(value)
-      if e ~= nil then
-        return cfg, e
-      end
-      cfg.available_actions = a
-    else
-      return cfg, "Invalid config field: " .. key
-    end
-  end
-  return cfg, nil
-end
-
-return Mappings_config
+return Actions_mappings_config
