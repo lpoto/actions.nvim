@@ -4,8 +4,8 @@ name: Generate documentation
 
 on:
   push:
-    # never run this on main branch
-    branches-ignore:
+    # generate docs only on main
+    branches:
       - main
 
 jobs:

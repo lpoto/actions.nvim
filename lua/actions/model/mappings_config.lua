@@ -4,15 +4,6 @@
 ---@brief [[
 ---Actions_mappings_config is a table of keymaps used in normal
 ---mode in the plugin's windows.
----
----Default value:
----<code>
----  {
----    run_kill = "<Enter>",
----    show_output = "o",
----    show_definition = "d"
----  }
----</code>
 ---@brief ]]
 
 ---@class Actions_mappings_config

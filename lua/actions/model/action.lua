@@ -7,24 +7,21 @@
 ---Example action in the |User_config| table:
 ---<code>
 ---  {
----    ["Hello world action"] = function()
----    return {
----      cwd = "/temp",
----      env = {"HELLO_WORLD" = "Hello World"},
----      clear_env = false,
----      filetypes = {"lua", "bash"},
----      patterns = {".*.lua", ".*.sh"},
----      steps = {
----        "echo 'Hello world!'",
----        {"echo", "$HELLO_WORLD", "again!"}
----      }
+---    cwd = "/temp",
+---    env = {"HELLO_WORLD" = "Hello World"},
+---    clear_env = false,
+---    filetypes = {"lua", "bash"},
+---    patterns = {".*.lua", ".*.sh"},
+---    steps = {
+---      "echo 'Hello world!'",
+---      {"echo", "$HELLO_WORLD", "again!"}
 ---    }
----    end
 ---  }
 ---</code>
 ---@brief ]]
 
 ---@class Action
+---@field name string: This is taken from the key in the |User_config| table.
 ---@field env table|nil: A table of environment variables.
 ---@field clear_env boolean: Whether env defined the whole environment and other environment variables should be deleted (default: false).
 ---@field steps table: A table of commands (strings or tables) to be executed in order.

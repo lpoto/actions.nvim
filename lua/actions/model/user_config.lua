@@ -10,44 +10,68 @@ local Actions_mappings_config = require "actions.model.mappings_config"
 ---The config's actions are functions returning |Action| objects, so
 ---that they may be loaded when requested, which allows actions relative to
 ---the current context.
+---
+---Default value:
+---<code>
+---  {
+---    log = {
+---      level = vim.log.levels.INFO,
+---      prefix = "Actions.nvim",
+---      silent = false,
+---    },
+---    mappings = {
+---      run_kill = "<Enter>",
+---      show_output = "o",
+---      show_definition = "d",
+---    },
+---    actions = {
+---      ["Example action"] = function()
+---        return {
+---          filetypes = { "help" },
+---          steps = {
+---            "echo 'Current file: " .. (vim.fn.expand "%:p") .. "'"
+---          }
+---        }
+---      end
+---    },
+---    -- open a window for the output buffer,
+---    -- but keep focus on the current window
+---    before_displaying_output = function(bufnr)
+---      local winid = vim.fn.win_getid(vim.fn.winnr())
+---      vim.fn.execute("keepjumps vertical sb " .. bufnr, true)
+---      vim.fn.win_gotoid(winid)
+---    end,
+---  }
+---</code>
 ---@brief ]]
 
 ---@class Actions_user_config
 ---@field actions table: A table with action names as keys and functions returning |Action| objects as values.
----@field before_displaying_output function: See |before_displaying_output|.
+---@field before_displaying_output function: Should always open a window for the output buffer.
 ---@field log Actions_log_config: |Actions_log_config| for the plugin's logger.
 ---@field mappings Actions_mappings_config: |Actions_mappings_config| for keymaps in the action's windows.
 
 ---@type Actions_user_config
 local M = {
   log = Actions_log_config.__default(),
-  action = {},
   mappings = Actions_mappings_config.__default(),
+  actions = {
+    ["Example action"] = function()
+      return {
+        filetypes = { "help" },
+        steps = {
+          "echo 'Current file: " .. (vim.fn.expand "%:p") .. "'",
+        },
+      }
+    end,
+  },
+  before_displaying_output = function(bufnr)
+    local winid = vim.fn.win_getid(vim.fn.winnr())
+    vim.fn.execute("keepjumps vertical sb " .. bufnr, true)
+    vim.fn.win_gotoid(winid)
+  end,
 }
 M.__index = M
-
----This function should always open a window for the provided
----buffer number.
----
----Default value:
----<code>
----  --Opens a new vertical window but keeps focus on the current window
----  function(bufnr)
----    local winid = vim.fn.win_getid(vim.fn.winnr())
----    vim.fn.execute("keepjumps vertical sb " .. bufnr, true)
----    vim.fn.win_gotoid(winid)
----  end
----</code>
----@param bufnr number: The number of the output buffer
-function M.before_displaying_output(bufnr)
-  -- NOTE: oppen the output window in a vertical
-  -- split by default.
-  -- NOTE: use keepjumps to no add the output buffer
-  -- to the jumplist
-  local winid = vim.fn.win_getid(vim.fn.winnr())
-  vim.fn.execute("keepjumps vertical sb " .. bufnr, true)
-  vim.fn.win_gotoid(winid)
-end
 
 ---Create a default user config
 ---

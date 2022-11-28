@@ -4,15 +4,6 @@
 ---@brief [[
 ---Actions_log_config is an object that represents a configuration for the
 ---plugin's logger.
----
----Default value:
----<code>
----  {
----    level = vim.log.levels.INFO,
----    prefix = "Actions.nvim",
----    silent = false
----  }
----</code>
 ---@brief ]]
 
 ---@class Actions_log_config
