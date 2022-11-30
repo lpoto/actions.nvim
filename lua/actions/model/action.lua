@@ -6,7 +6,8 @@ local enum = require "actions.enum"
 ---@brief [[
 ---Action is an object that represents a sequence of commands
 ---and the environment in which they will be run.
----Example action in the |User_config| table:
+---
+---Example action:
 ---<code>
 ---  {
 ---    cwd = "/temp",
@@ -20,6 +21,8 @@ local enum = require "actions.enum"
 ---    }
 ---  }
 ---</code>
+---Note that the action also has a `name` field, but it is automatically
+---determined from the key in the |User_config| table when calling the setup function.
 ---@brief ]]
 
 ---@class Action
