@@ -1,3 +1,5 @@
+local enum = require "actions.enum"
+
 ---@tag actions.model.action
 ---@config {["name"] = "ACTION"}
 
@@ -54,7 +56,7 @@ function Action.__create(name, o)
   if type(o) ~= "table" then
     return a, "Action '" .. name .. "' should be a table!"
   end
-  if string.len(name) > 35 then
+  if string.len(name) > enum.FLOATING_WINDOW_WIDTH - 15 then
     return a,
       "Action '" .. name .. "'s name should not be longer than 35 chars!"
   end

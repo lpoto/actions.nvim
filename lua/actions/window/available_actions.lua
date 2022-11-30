@@ -55,8 +55,8 @@ function window.open()
   -- only the actions' names.
   -- User may only navigate the inner window.
 
-  local width = 50
-  local height = 30
+  local width = enum.FLOATING_WINDOW_WIDTH
+  local height = enum.FLOATING_WINDOW_HEIGHT
   local row = vim.o.lines / 2 - height / 2
   local col = vim.o.columns / 2 - width / 2
 
@@ -144,7 +144,9 @@ function window.select_action_under_cursor()
         -- in the execution of the job
         label = "[exit]"
       end
-      local l = "> " .. string.rep(" ", 37) .. label
+      local l = "> "
+        .. string.rep(" ", enum.FLOATING_WINDOW_WIDTH - 13)
+        .. label
       -- NOTE: make sure the buffer is modifiable before
       -- replacing text
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
@@ -162,7 +164,9 @@ function window.select_action_under_cursor()
     -- NOTE: the executor successfully started the job, so
     -- add the [running] label to the actino.
     if executor.is_running(name) == true then
-      local l = "> " .. string.rep(" ", 37) .. "[running]"
+      local l = "> "
+        .. string.rep(" ", enum.FLOATING_WINDOW_WIDTH - 13)
+        .. "[running]"
       -- NOTE: make sure the buffer is modifiable before
       -- replacing any lines
       pcall(vim.api.nvim_buf_set_option, outter_buf, "modifiable", true)
@@ -314,11 +318,11 @@ set_outter_window_lines = function(width, actions)
   for _, action in ipairs(actions) do
     local l = "> "
     if executor.is_running(action.name) then
-      l = l .. string.rep(" ", 37) .. "[running]"
+      l = l .. string.rep(" ", enum.FLOATING_WINDOW_WIDTH - 13) .. "[running]"
     else
       local output_buf = executor.get_action_output_buf(action.name)
       if output_buf ~= nil and vim.fn.bufexists(output_buf) == 1 then
-        l = l .. string.rep(" ", 37) .. "[output]"
+        l = l .. string.rep(" ", enum.FLOATING_WINDOW_WIDTH - 13) .. "[output]"
       end
     end
     table.insert(lines, l)
