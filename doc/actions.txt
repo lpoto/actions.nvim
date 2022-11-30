@@ -40,7 +40,9 @@ actions.toggle_last_output()                    *actions.toggle_last_output()*
 ACTION                                                    *actions.model.action*
 
 Action is an object that represents a sequence of commands and the environment
-in which they will be run. Example action in the |User_config| table:
+in which they will be run.
+
+Example action:
 >
  {
    cwd = "/temp",
@@ -54,6 +56,9 @@ in which they will be run. Example action in the |User_config| table:
    }
  }
 <
+Note that the action also has a `name` field, but it is automatically
+determined from the key in the |User_config| table when calling the setup
+function.
 
 Action                                                                *Action*
 
