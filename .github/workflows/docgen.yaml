@@ -4,8 +4,7 @@ name: Generate documentation
 
 on:
   push:
-    # generate docs only on main
-    branches:
+    branches-ignore:
       - main
 
 jobs:
@@ -26,6 +25,7 @@ jobs:
         with:
           path: _neovim
           key: ${{ runner.os }}-${{ matrix.url }}-${{ hashFiles('todays-date') }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare
         # add tree-sitter which is used for generating docs
@@ -49,15 +49,15 @@ jobs:
           export VIM="${PWD}/_neovim/share/nvim/runtime"
           nvim --version
           ./scripts/gendocs.sh
-      - name: Update documentation
-        # push the changes
+      - name: Commit updated documentation
         env:
           COMMIT_MSG: |
             [docgen] Update doc/actions.txt
             skip-checks: true
         run: |
-          git config user.email "actions@github"
-          git config user.name "Github Actions"
+          git config user.email "actions@github.com"
+          git config user.name "Github Actions - update documentation"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
           git add doc/
           # Only commit and push if we have changes
           git diff --quiet && git diff --staged --quiet || (git commit -m "${COMMIT_MSG}"; git push)

@@ -1,10 +1,13 @@
+local enum = require "actions.enum"
+
 ---@tag actions.model.action
 ---@config {["name"] = "ACTION"}
 
 ---@brief [[
 ---Action is an object that represents a sequence of commands
 ---and the environment in which they will be run.
----Example action in the |User_config| table:
+---
+---Example action:
 ---<code>
 ---  {
 ---    cwd = "/temp",
@@ -18,6 +21,8 @@
 ---    }
 ---  }
 ---</code>
+---Note that the action also has a `name` field, but it is automatically
+---determined from the key in the |User_config| table when calling the setup function.
 ---@brief ]]
 
 ---@class Action
@@ -54,7 +59,7 @@ function Action.__create(name, o)
   if type(o) ~= "table" then
     return a, "Action '" .. name .. "' should be a table!"
   end
-  if string.len(name) > 35 then
+  if string.len(name) > enum.FLOATING_WINDOW_WIDTH - 15 then
     return a,
       "Action '" .. name .. "'s name should not be longer than 35 chars!"
   end
