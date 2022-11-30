@@ -4,8 +4,7 @@ name: Generate documentation
 
 on:
   push:
-    # generate docs only on main
-    branches:
+    branches-ignore:
       - main
 
 jobs:
@@ -26,7 +25,7 @@ jobs:
         with:
           path: _neovim
           key: ${{ runner.os }}-${{ matrix.url }}-${{ hashFiles('todays-date') }}
-          token: ${{ secrets.PRIVATE_TOKEN_GITHUB }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare
         # add tree-sitter which is used for generating docs
@@ -58,6 +57,7 @@ jobs:
         run: |
           git config user.email "actions@github.com"
           git config user.name "Github Actions - update documentation"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
           git add doc/
           # Only commit and push if we have changes
           git diff --quiet && git diff --staged --quiet || (git commit -m "${COMMIT_MSG}"; git push)
