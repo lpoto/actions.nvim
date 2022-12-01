@@ -43,6 +43,7 @@ function window.open(create_buffer, handle_window)
     -- buffer so don't open another one.
     -- Rather just jump to it.
     vim.fn.win_gotoid(existing_winid)
+    oppened_win = existing_winid
     return
   end
 

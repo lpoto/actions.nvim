@@ -4,9 +4,6 @@ local output_window = require "actions.window.output"
 
 local window = {}
 
----@type string|nil: Name of the last oppened action
-window.last_oppened = nil
-
 ---Open the output buffer for the provided
 ---action in the current window.
 ---
