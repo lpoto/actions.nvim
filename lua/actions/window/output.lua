@@ -1,8 +1,8 @@
 local setup = require "actions.setup"
 local enum = require "actions.enum"
 
----@type number?: Window ID of the currently oppened output window
-local oppened_win = nil
+---@type number?: Window ID of the currently opened output window
+local opened_win = nil
 
 local previous_create_buffer = nil
 local previous_handle_window = nil
@@ -43,6 +43,7 @@ function window.open(create_buffer, handle_window)
     -- buffer so don't open another one.
     -- Rather just jump to it.
     vim.fn.win_gotoid(existing_winid)
+    opened_win = existing_winid
     return
   end
 
@@ -61,15 +62,15 @@ function window.open(create_buffer, handle_window)
     )
     return
   end
-  -- handle the oppened output window
+  -- handle the opened output window
   handle_window(ow)
 
-  -- NOTE: save the oppened window so we know when to close it
+  -- NOTE: save the opened window so we know when to close it
   -- when toggling
-  oppened_win = ow
+  opened_win = ow
 
   -- NOTE: save the provided functions to be used
-  -- when toggling the previously oppened output window
+  -- when toggling the previously opened output window
   window.set_previous(create_buffer, handle_window)
 end
 
@@ -83,15 +84,15 @@ function window.set_previous(create_buffer, handle_window)
   previous_create_buffer = create_buffer
 end
 
----Reopens the last oppened output window, if there was any.
+---Reopens the last opened output window, if there was any.
 function window.toggle_last()
-  -- NOTE: if an output window is already oppened, remove it
-  if oppened_win ~= nil and vim.api.nvim_win_is_valid(oppened_win) then
-    vim.api.nvim_win_close(oppened_win, false)
+  -- NOTE: if an output window is already opened, remove it
+  if opened_win ~= nil and vim.api.nvim_win_is_valid(opened_win) then
+    vim.api.nvim_win_close(opened_win, false)
     return
   end
 
-  -- NOTE: there is currently no oppened output window.
+  -- NOTE: there is currently no opened output window.
   -- Check if there is a previous output call and execute it
   if
     previous_create_buffer ~= nil

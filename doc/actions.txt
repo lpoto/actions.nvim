@@ -30,7 +30,7 @@ actions.available_actions()                      *actions.available_actions()*
 
 
 actions.toggle_last_output()                    *actions.toggle_last_output()*
-    Reopens the last output window of the last run action, or the last oppened
+    Reopens the last output window of the last run action, or the last opened
     output buffer.
 
 
