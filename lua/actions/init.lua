@@ -41,7 +41,7 @@ function actions.available_actions()
 end
 
 ---Reopens the last output window of the last run action,
----or the last oppened output buffer.
+---or the last opened output buffer.
 function actions.toggle_last_output()
   output_window.toggle_last()
 end

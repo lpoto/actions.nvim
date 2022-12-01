@@ -7,11 +7,11 @@ local enum = require "actions.enum"
 local window = {}
 
 ---@type number?: The buffer from which the actions buffer
----was oppened
+---was opened
 local prev_buf = nil
----@type number?: Currently oppened actions buffer
+---@type number?: Currently opened actions buffer
 local buf = nil
----@type number?: The currently oppened
+---@type number?: The currently opened
 -- actions buffer's background buffer
 local outter_buf = nil
 
@@ -27,7 +27,7 @@ local set_outter_window_highlights
 ---Opens a floating window displayed
 ---over the center of the editor.
 ---
----@return number: the oppened buffer number, -1 on failure
+---@return number: the opened buffer number, -1 on failure
 function window.open()
   local cur_buf = vim.fn.bufnr()
   if
@@ -186,7 +186,7 @@ end
 ---Reads the name of the actions in the line under the cursor.
 ---Displays the current definition of the action in the command line.
 ---NOTE: the displayed definition may differ based on the buffer
----the actions window was oppened from, but it is the same as the one
+---the actions window was opened from, but it is the same as the one
 ---that would be used for execution.
 function window.definition_of_action_under_cursor()
   local bufnr = vim.fn.bufnr()
@@ -251,7 +251,7 @@ end
 ---the available actions.
 ---Also sets higlightings for the inserted text.
 ---NOTE: this requires the actions window to
----be the currently oppened window.
+---be the currently opened window.
 ---
 ---@param actions table: a table of available actions
 set_window_lines = function(actions)
@@ -341,7 +341,7 @@ end
 
 ---Set higlights for the actions window.
 ---NOTE: actions window should be the
----currently oppened window.
+---currently opened window.
 set_window_highlights = function()
   local bufnr = vim.fn.bufnr()
   if bufnr ~= buf then
@@ -359,7 +359,7 @@ end
 
 ---Set higlights for the outter actions window.
 ---NOTE: outter actions window should be the
----currently oppened window.
+---currently opened window.
 set_outter_window_highlights = function()
   local bufnr = vim.fn.bufnr()
   if bufnr ~= outter_buf then

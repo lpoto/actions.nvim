@@ -41,14 +41,14 @@ end
 
 ---@param action Action: the action for which the output will be shown.
 ---@return function: Function to get the output buffer number
----@return function: Function to handle the oppened window
+---@return function: Function to handle the opened window
 function window.get_init_functions(action)
   ---@return number?: An action output buffer number
   local create_buffer = function()
     return run_action.get_buf_num(action.name)
   end
   local handle_window = function(winid)
-    -- NOTE: set wrap for the oppened window
+    -- NOTE: set wrap for the opened window
     vim.api.nvim_win_set_option(winid, "wrap", true)
 
     -- NOTE: match some higlights in the output window
