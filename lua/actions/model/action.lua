@@ -15,6 +15,7 @@ local enum = require "actions.enum"
 ---    clear_env = false,
 ---    filetypes = {"lua", "bash"},
 ---    patterns = {".*.lua", ".*.sh"},
+---    ignore_patterns = {".*ignore.*.lua"},
 ---    steps = {
 ---      "echo 'Hello world!'",
 ---      {"echo", "$HELLO_WORLD", "again!"}
@@ -33,6 +34,7 @@ local enum = require "actions.enum"
 ---@field cwd string|nil: The working directory of the action.
 ---@field filetypes table|nil: Filetypes in which the action is available.
 ---@field patterns table|nil: Action is available ony in files with names that match a pattern in this table of lua patterns.
+---@field ignore_patterns table|nil: Action is not available in files with names that match a pattern in this table of lua patterns.
 
 ---@type Action
 local Action = {}
@@ -69,9 +71,13 @@ function Action.__create(name, o)
   end
   a.filetypes = o.filetypes
   if o.patterns ~= nil and type(o.patterns) ~= "table" then
-    return a, "Action '" .. name .. "'s filetypes should be a table!"
+    return a, "Action '" .. name .. "'s patterns should be a table!"
   end
   a.patterns = o.patterns
+  if o.ignore_patterns ~= nil and type(o.ignore_patterns) ~= "table" then
+    return a, "Action '" .. name .. "'s ignore_patterns should be a table!"
+  end
+  a.ignore_patterns = o.ignore_patterns
   if o.cwd ~= nil and type(o.cwd) ~= "string" then
     return a, "Action '" .. name .. "'s cwd should be a string!"
   end
@@ -142,11 +148,21 @@ function Action.__is_available(a)
   if continue == false then
     return false
   end
+  local filename = vim.fn.expand "%:p"
+
+  local ignore_patterns = a.ignore_patterns
+  if ignore_patterns ~= nil then
+    for _, p in ipairs(ignore_patterns) do
+      if string.find(filename, p) ~= nil then
+        return false
+      end
+    end
+  end
+
   local patterns = a.patterns
   if patterns == nil or next(patterns) == nil then
     return true
   end
-  local filename = vim.fn.expand "%:p"
   for _, p in ipairs(patterns) do
     if string.find(filename, p) ~= nil then
       return true
