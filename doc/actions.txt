@@ -50,6 +50,7 @@ Example action:
    clear_env = false,
    filetypes = {"lua", "bash"},
    patterns = {".*.lua", ".*.sh"},
+   ignore_patterns = {".*ignore.*.lua"},
    steps = {
      "echo 'Hello world!'",
      {"echo", "$HELLO_WORLD", "again!"}
@@ -64,19 +65,24 @@ Action                                                                *Action*
 
 
     Fields: ~
-        {name}      (string)      This is taken from the key in the
-                                  |User_config| table.
-        {env}       (table|nil)   A table of environment variables.
-        {clear_env} (boolean)     Whether env defined the whole environment
-                                  and other environment variables should be
-                                  deleted (default: false).
-        {steps}     (table)       A table of commands (strings or tables) to
-                                  be executed in order.
-        {cwd}       (string|nil)  The working directory of the action.
-        {filetypes} (table|nil)   Filetypes in which the action is available.
-        {patterns}  (table|nil)   Action is available ony in files with names
-                                  that match a pattern in this table of lua
-                                  patterns.
+        {name}            (string)      This is taken from the key in the
+                                        |User_config| table.
+        {env}             (table|nil)   A table of environment variables.
+        {clear_env}       (boolean)     Whether env defined the whole
+                                        environment and other environment
+                                        variables should be deleted (default:
+                                        false).
+        {steps}           (table)       A table of commands (strings or
+                                        tables) to be executed in order.
+        {cwd}             (string|nil)  The working directory of the action.
+        {filetypes}       (table|nil)   Filetypes in which the action is
+                                        available.
+        {patterns}        (table|nil)   Action is available ony in files with
+                                        names that match a pattern in this
+                                        table of lua patterns.
+        {ignore_patterns} (table|nil)   Action is not available in files with
+                                        names that match a pattern in this
+                                        table of lua patterns.
 
 
 
