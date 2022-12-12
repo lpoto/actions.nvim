@@ -23,6 +23,11 @@ function window.open(create_buffer, handle_window)
     return
   end
 
+  if vim.api.nvim_buf_get_option(0, "filetype") == "TelescopePrompt" then
+    -- NOTE: close telescope popup if open
+    vim.api.nvim_buf_delete(0, { force = true })
+  end
+
   -- NOTE: execute the BufLeave autocmds, so the
   -- available actions window is wiped
   vim.api.nvim_exec_autocmds("BufLeave", {
