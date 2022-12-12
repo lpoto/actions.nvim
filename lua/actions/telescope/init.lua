@@ -41,10 +41,26 @@ function telescope.available_actions(opts)
   available_actions_telescope_prompt(opts)
 end
 
+local function quote_string(v)
+  if
+    type(v) == "string"
+    and (string.find(v, "'") or string.find(v, "`") or string.find(v, '"'))
+  then
+    if string.find(v, "'") == nil then
+      v = "'" .. v .. "'"
+    elseif string.find(v, '"') == nil then
+      v = '"' .. v .. '"'
+    elseif string.find(v, "`") == nil then
+      v = "`" .. v .. "`"
+    end
+  end
+  return v
+end
+
 local function get_action_definition(action)
   local def = {}
   if action.name ~= nil then
-    table.insert(def, "name: " .. action.name)
+    table.insert(def, "name: " .. quote_string(action.name))
   end
   local function generate(tbl, indent)
     if not indent then
@@ -52,6 +68,7 @@ local function get_action_definition(action)
     end
     for k, v in pairs(tbl) do
       if k ~= "name" then
+        v = quote_string(v)
         if type(k) == "number" then
           k = "- "
         else
