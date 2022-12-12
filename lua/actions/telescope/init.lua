@@ -11,9 +11,9 @@ local action_state = require "telescope.actions.state"
 local previewers = require "telescope.previewers"
 local entry_display = require "telescope.pickers.entry_display"
 
-local t = {}
+local telescope = {}
 
----@tag telescope
+---@tag actions.telescope
 ---@config {["name"] = "TELESCOPE"}
 --
 ---@brief [[
@@ -29,14 +29,15 @@ local available_actions_telescope_prompt
 ---selecting it with enter. It's output may then be displayed
 ---with 'o' in normal more or 'Ctrl + o' in insert mode.
 ---
----You may pass a different theme to the picker:
+---You may pass a different theme to the picker.
+---
 ---Example:
 ---<code>
 ---  telescope.available_actions(require("telescope.themes").get_dropdown())
 ---</code>
 ---
 ---@param opts table?: options to pass to the picker
-function t.available_actions(opts)
+function telescope.available_actions(opts)
   available_actions_telescope_prompt(opts)
 end
 
@@ -201,4 +202,4 @@ available_actions_telescope_prompt = function(options)
   actions_picker(options)
 end
 
-return t
+return telescope

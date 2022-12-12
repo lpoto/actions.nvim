@@ -26,6 +26,9 @@ local set_outter_window_highlights
 
 ---Opens a floating window displayed
 ---over the center of the editor.
+---In the opened window, the action may be run or killed by
+---selecting it with enter. It's output may then be displayed
+---with 'o' and it's definition with 'd'.
 ---
 ---@return number: the opened buffer number, -1 on failure
 function window.open()
@@ -298,21 +301,9 @@ set_outter_window_lines = function(width, actions)
   vim.api.nvim_buf_set_option(outter_buf, "modifiable", true)
 
   local lines = {
-    add_suffix(
-      " Run or kill an action with: ",
-      setup.config.mappings.run_kill .. " ",
-      width
-    ),
-    add_suffix(
-      " See the output of an action with: ",
-      setup.config.mappings.show_output .. " ",
-      width
-    ),
-    add_suffix(
-      " See the action's definition with: ",
-      setup.config.mappings.show_definition .. " ",
-      width
-    ),
+    add_suffix(" Run or kill an action with: ", "<Enter> ", width),
+    add_suffix(" See the output of an action with: ", "o ", width),
+    add_suffix(" See the action's definition with: ", "d ", width),
     string.rep("-", width),
   }
   for _, action in ipairs(actions) do
@@ -421,7 +412,7 @@ set_window_options = function()
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    setup.config.mappings.run_kill,
+    "<CR>",
     "<CMD>lua require('actions.window.available_actions')"
       .. ".select_action_under_cursor()<CR>",
     {}
@@ -433,7 +424,7 @@ set_window_options = function()
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    setup.config.mappings.show_output,
+    "o",
     "<CMD>lua require('actions.window.available_actions')"
       .. ".output_of_action_under_cursor()<CR>",
     {}
@@ -443,7 +434,7 @@ set_window_options = function()
   vim.api.nvim_buf_set_keymap(
     buf,
     "",
-    setup.config.mappings.show_definition,
+    "d",
     "<CMD>lua require('actions.window.available_actions')"
       .. ".definition_of_action_under_cursor()<CR>",
     {}
