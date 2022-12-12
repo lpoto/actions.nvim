@@ -102,11 +102,6 @@ Default value:
      prefix = "Actions.nvim",
      silent = false,
    },
-   mappings = {
-     run_kill = "<Enter>",
-     show_output = "o",
-     show_definition = "d",
-   },
    actions = {
      ["Example action"] = function()
        return {
@@ -131,26 +126,17 @@ Actions_user_config                                      *Actions_user_config*
 
 
     Fields: ~
-        {actions}                  (table)                    A table with
-                                                              action names as
-                                                              keys and
-                                                              functions
-                                                              returning
-                                                              |Action| objects
-                                                              as values.
-        {before_displaying_output} (function)                 Should always
-                                                              open a window
-                                                              for the output
-                                                              buffer.
-        {log}                      (Actions_log_config)       
-                                                              |Actions_log_config|
-                                                              for the plugin's
-                                                              logger.
-        {mappings}                 (Actions_mappings_config)  
-                                                              |Actions_mappings_config|
-                                                              for keymaps in
-                                                              the action's
-                                                              windows.
+        {actions}                  (table)               A table with action
+                                                         names as keys and
+                                                         functions returning
+                                                         |Action| objects as
+                                                         values.
+        {before_displaying_output} (function)            Should always open a
+                                                         window for the output
+                                                         buffer.
+        {log}                      (Actions_log_config)  |Actions_log_config|
+                                                         for the plugin's
+                                                         logger.
 
 
 
@@ -173,21 +159,23 @@ Actions_log_config                                        *Actions_log_config*
 
 
 ================================================================================
-ACTIONS MAPPING CONFIG                           *actions.model.mappings_config*
+TELESCOPE                                                    *actions.telescope*
 
-Actions_mappings_config is a table of keymaps used in normal mode in the
-plugin's windows.
+Actions.nvim allow displaying and managing actions in a telescope prompt.
 
-Actions_mappings_config                              *Actions_mappings_config*
+telescope.available_actions()                  *telescope.available_actions()*
+    Displays available actions in a telescope prompt. In the opened window, the
+    action may be run or killed by selecting it with enter. It's output may
+    then be displayed with 'o' in normal more or 'Ctrl + o' in insert mode.
+
+    You may pass a different theme to the picker.
+
+    Example:
+    >
+     telescope.available_actions(require("telescope.themes").get_dropdown())
+<
 
 
-    Fields: ~
-        {run_kill}        (string)  Run or kill the action under the cursor in
-                                    available actions window.
-        {show_output}     (string)  Show output of the action under the
-                                    cursor.
-        {show_definition} (string)  Show definition of the action under the
-                                    cursor.
 
 
 

@@ -1,5 +1,4 @@
 local Actions_log_config = require "actions.model.log_config"
-local Actions_mappings_config = require "actions.model.mappings_config"
 
 ---@tag actions.model.user_config
 ---@config {["name"] = "USER CONFIG"}
@@ -18,11 +17,6 @@ local Actions_mappings_config = require "actions.model.mappings_config"
 ---      level = vim.log.levels.INFO,
 ---      prefix = "Actions.nvim",
 ---      silent = false,
----    },
----    mappings = {
----      run_kill = "<Enter>",
----      show_output = "o",
----      show_definition = "d",
 ---    },
 ---    actions = {
 ---      ["Example action"] = function()
@@ -49,12 +43,10 @@ local Actions_mappings_config = require "actions.model.mappings_config"
 ---@field actions table: A table with action names as keys and functions returning |Action| objects as values.
 ---@field before_displaying_output function: Should always open a window for the output buffer.
 ---@field log Actions_log_config: |Actions_log_config| for the plugin's logger.
----@field mappings Actions_mappings_config: |Actions_mappings_config| for keymaps in the action's windows.
 
 ---@type Actions_user_config
 local M = {
   log = Actions_log_config.__default(),
-  mappings = Actions_mappings_config.__default(),
   actions = {
     ["Example action"] = function()
       return {
@@ -117,12 +109,6 @@ function M.__create(o)
         return cfg, "before_displaying_output should be a function!"
       end
       cfg.before_displaying_output = value
-    elseif key == "mappings" then
-      local v, e = Actions_mappings_config.__create(value)
-      if e ~= nil then
-        return cfg, e
-      end
-      cfg.mappings = v
     else
       return cfg, "Invalid config field: " .. key
     end

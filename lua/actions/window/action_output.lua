@@ -8,7 +8,9 @@ local window = {}
 ---action in the current window.
 ---
 ---@param action Action
-function window.open(action)
+---@param beforeOpening function?: Before oppening the window
+---This is not called if action has no output.
+function window.open(action, beforeOpening)
   if action == nil then
     return
   end
@@ -17,6 +19,9 @@ function window.open(action)
   if buf == nil or vim.fn.bufexists(buf) ~= 1 then
     log.warn("Action '" .. action.name .. "' has no output!")
     return
+  end
+  if beforeOpening ~= nil then
+    beforeOpening()
   end
   local create_buffer, handle_window = window.get_init_functions(action)
   output_window.open(create_buffer, handle_window)
