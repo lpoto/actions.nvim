@@ -13,11 +13,31 @@ local entry_display = require "telescope.pickers.entry_display"
 
 local t = {}
 
+---@tag telescope
+---@config {["name"] = "TELESCOPE"}
+--
+---@brief [[
+---Actions.nvim allow displaying and managing actions in a telescope
+---prompt.
+---@brief ]]
+
 local prev_buf = nil
 local available_actions_telescope_prompt
 
-function t.available_actions()
-  available_actions_telescope_prompt()
+---Displays available actions in a telescope prompt.
+---In the opened window, the action may be run or killed by
+---selecting it with enter. It's output may then be displayed
+---with 'o' in normal more or 'Ctrl + o' in insert mode.
+---
+---You may pass a different theme to the picker:
+---Example:
+---<code>
+---  telescope.available_actions(require("telescope.themes").get_dropdown())
+---</code>
+---
+---@param opts table?: options to pass to the picker
+function t.available_actions(opts)
+  available_actions_telescope_prompt(opts)
 end
 
 local function get_action_definition(action)
@@ -128,7 +148,7 @@ local function attach_picker_mappings()
   end
 end
 
-available_actions_telescope_prompt = function()
+available_actions_telescope_prompt = function(options)
   local cur_buf = vim.fn.bufnr()
   if
     vim.api.nvim_buf_get_option(cur_buf, "buftype") ~= "terminal"
@@ -178,7 +198,7 @@ available_actions_telescope_prompt = function()
       :find()
   end
 
-  actions_picker()
+  actions_picker(options)
 end
 
 return t

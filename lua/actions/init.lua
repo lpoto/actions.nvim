@@ -1,6 +1,7 @@
 local log = require "actions.log"
 local setup = require "actions.setup"
 local available_actions = require "actions.window.available_actions"
+local telescope = require "actions.telescope"
 local output_window = require "actions.window.output"
 
 local actions = {}
@@ -37,7 +38,8 @@ end
 ---From that window the actions may then be executed,
 ---killed and their output or definition shown.
 function actions.available_actions()
-  available_actions.open()
+  --available_actions.open()
+  telescope.available_actions(require("telescope.themes").get_dropdown())
 end
 
 ---Reopens the last output window of the last run action,
