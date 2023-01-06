@@ -2,11 +2,17 @@ local setup = require "actions.setup"
 
 ---@param txt string: Text to log
 ---@param level number: A vim.log.levels value
-local function notify(txt, level)
+---@param title string|nil
+local function notify(txt, level, title)
   if setup.config.log.silent == true or setup.config.log.level > level then
     return
   end
-  vim.notify(setup.config.log.prefix .. ": " .. txt, level)
+
+  title = title or "Actions.nvim"
+
+  vim.notify(setup.config.log.prefix .. ": " .. txt, level, {
+    title = title,
+  })
 end
 
 local log = {}
