@@ -197,6 +197,7 @@ available_actions_telescope_prompt = function(options)
     pickers
       .new(opts, {
         prompt_title = "Actions",
+        results_title = "<C-o> - Show output, <CR> - Run action",
         finder = finders.new_table {
           results = actions,
           entry_maker = function(entry)
