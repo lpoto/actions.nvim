@@ -1,5 +1,3 @@
-local Actions_log_config = require "actions.model.log_config"
-
 ---@tag actions.model.user_config
 ---@config {["name"] = "USER CONFIG"}
 
@@ -13,11 +11,7 @@ local Actions_log_config = require "actions.model.log_config"
 ---Default value:
 ---<code>
 ---  {
----    log = {
----      level = vim.log.levels.INFO,
----      prefix = "Actions.nvim",
----      silent = false,
----    },
+---    log_level = vim.log.levels.INFO,
 ---    actions = {
 ---      ["Example action"] = function()
 ---        return {
@@ -42,11 +36,11 @@ local Actions_log_config = require "actions.model.log_config"
 ---@class Actions_user_config
 ---@field actions table: A table with action names as keys and functions returning |Action| objects as values.
 ---@field before_displaying_output function: Should always open a window for the output buffer.
----@field log Actions_log_config: |Actions_log_config| for the plugin's logger.
+---@field log_level number: A vim.log.levels value.
 
 ---@type Actions_user_config
 local M = {
-  log = Actions_log_config.__default(),
+  log_level = vim.log.levels.INFO,
   actions = {
     ["Example action"] = function()
       return {
@@ -86,12 +80,11 @@ function M.__create(o)
     return cfg, "User config should be a table!"
   end
   for key, value in pairs(o) do
-    if key == "log" then
-      local log, e = Actions_log_config.__create(value)
-      if e ~= nil then
-        return cfg, e
+    if key == "log_level" then
+      if type(value) ~= "number" then
+        return cfg, "log_level should be a vim.log.levels value!"
       end
-      cfg.log = log
+      cfg.log_level = value
     elseif key == "actions" then
       if type(value) ~= "table" then
         return cfg, "actions should be a table!"
