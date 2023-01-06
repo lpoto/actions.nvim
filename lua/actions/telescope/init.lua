@@ -86,6 +86,7 @@ local function get_action_definition(action)
       end
     end
   end
+
   generate(action, 0)
   return def
 end
@@ -115,6 +116,7 @@ local function get_action_display(action)
     action.name,
   }
 end
+
 local function picker_preview()
   return function(self, entry)
     if self.state.bufname then
@@ -159,9 +161,11 @@ local function attach_picker_mappings()
     map("n", "o", function()
       output_of_action_under_cursor(prompt_bufnr)
     end)
-    map({ "n", "i" }, "<C-o>", function()
-      output_of_action_under_cursor(prompt_bufnr)
-    end)
+    for _, mode in ipairs { "i", "n" } do
+      map(mode, "<C-o>", function()
+        output_of_action_under_cursor(prompt_bufnr)
+      end)
+    end
     return true
   end
 end
@@ -193,6 +197,7 @@ available_actions_telescope_prompt = function(options)
     pickers
       .new(opts, {
         prompt_title = "Actions",
+        results_title = "<C-o> - Show output, <CR> - Run action",
         finder = finders.new_table {
           results = actions,
           entry_maker = function(entry)

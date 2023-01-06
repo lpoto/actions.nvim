@@ -7,7 +7,6 @@ docs.test = function()
     "./lua/actions/init.lua",
     "./lua/actions/model/action.lua",
     "./lua/actions/model/user_config.lua",
-    "./lua/actions/model/log_config.lua",
     "./lua/actions/telescope/init.lua",
   }
   local output_file = "./doc/actions.txt"
