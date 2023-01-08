@@ -59,20 +59,24 @@ function window.get_init_functions(action)
     -- NOTE: match some higlights in the output window
     -- to distinguish the echoed step and action info from
     -- the actual output
-    pcall(vim.api.nvim_win_call, winid, function()
-      vim.fn.matchadd("Function", "^==> ACTION: \\[\\_.\\{-}\\n\\n")
-      vim.fn.matchadd("Constant", "^==> STEP: \\[\\_.\\{-}\\n\\n")
-      vim.fn.matchadd("Comment", "^==> CWD: \\[\\_.\\{-}\\n\\n")
-      vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
-      vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
-
-      if vim.fn.winwidth(winid) < 50 and vim.o.columns >= 70 then
-        -- NOTE: make sure the output window is at least 50 columns wide
-        vim.fn.execute("vertical resize " .. 50, true)
-      end
-    end)
+    window.highlight_added_text(winid)
   end
   return create_buffer, handle_window
+end
+
+function window.highlight_added_text(winid)
+  pcall(vim.api.nvim_win_call, winid, function()
+    vim.fn.matchadd("Function", "^==> ACTION: \\[\\_.\\{-}\\n\\n")
+    vim.fn.matchadd("Constant", "^==> STEP: \\[\\_.\\{-}\\n\\n")
+    vim.fn.matchadd("Comment", "^==> CWD: \\[\\_.\\{-}\\n\\n")
+    vim.fn.matchadd("Statement", "^\\[Process exited .*\\]$")
+    vim.fn.matchadd("Function", "^\\[Process exited 0\\]$")
+
+    if vim.fn.winwidth(winid) < 50 and vim.o.columns >= 70 then
+      -- NOTE: make sure the output window is at least 50 columns wide
+      vim.fn.execute("vertical resize " .. 50, true)
+    end
+  end)
 end
 
 return window
