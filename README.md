@@ -1,5 +1,7 @@
 # actions.nvim
 
+**_This is now deprecated in favor of [telescope-tasks.nvim](https://github.com/lpoto/telescope-tasks.nvim)_**
+
 ## Installation
 
 With [packer.nvim](https://github.com/wbthomason/packer.nvim):
