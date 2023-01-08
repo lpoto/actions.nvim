@@ -120,20 +120,22 @@ end
 
 local actions_finder
 
+local function refresh_picker(picker)
+  vim.defer_fn(function()
+    pcall(picker.refresh, picker, actions_finder(), { reset_prompt = true })
+  end, 60)
+end
+
 local function select_action(picker, action)
   if executor.is_running(action.name) == true then
     executor.kill(action.name, prev_buf)
     return
   end
 
-  local function reset_picker()
-    vim.defer_fn(function()
-      picker:refresh(actions_finder(), { reset_prompt = true })
-    end, 60)
-  end
-
-  executor.start(action.name, prev_buf, reset_picker)
-  reset_picker()
+  executor.start(action.name, prev_buf, function()
+    refresh_picker(picker)
+  end)
+  refresh_picker(picker)
 end
 
 local function output_of_action_under_cursor(picker_buf)
@@ -147,9 +149,7 @@ local function delete_output_of_action_under_cursor(picker_buf)
   local picker = action_state.get_current_picker(picker_buf)
   local selection = action_state.get_selected_entry()
   executor.delete_action_buffer(selection.value.name)
-  vim.defer_fn(function()
-    picker:refresh(actions_finder(), { reset_prompt = true })
-  end, 60)
+  refresh_picker(picker)
 end
 
 local function attach_picker_mappings()
