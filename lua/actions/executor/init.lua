@@ -25,6 +25,14 @@ function executor.get_action_output_buf(name)
   return run.get_buf_num(name)
 end
 
+---Deletes the output of the action and kills it
+---it is running.
+---
+---@param name string: name of an action
+function executor.delete_action_buffer(name)
+  return run.delete_action_buffer(name)
+end
+
 ---Run the action identified by the provided name
 ---
 ---@param name string: name of the action

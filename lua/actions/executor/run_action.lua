@@ -117,9 +117,9 @@ function run.run(action, on_exit)
   })
   --NOTE: open a terminal in the created buffer
   --set the terminal's properties to match the action
-  local job_id
+  local ok, job_id
   local ok1, err = pcall(vim.api.nvim_buf_call, term_buf, function()
-    _, job_id = pcall(vim.fn.termopen, cmd, {
+    ok, job_id = pcall(vim.fn.termopen, cmd, {
       cwd = cwd,
       env = env,
       clear_env = clear_env,
@@ -138,7 +138,7 @@ function run.run(action, on_exit)
   end
   --NOTE: if job_id is string, it means
   --an error occured when starting the action
-  if type(job_id) == "string" then
+  if ok == false then
     log.warn(job_id)
     return false
   end
@@ -179,17 +179,23 @@ end
 ---Stop a running action.
 ---
 ---@param action Action: Action to be stopped
----@param callback function?: Function to be called on successful stop
-function run.stop(action, callback)
+function run.stop(action)
   if running_actions[action.name] == nil then
     return false
   end
   local job = running_actions[action.name].job
   pcall(vim.fn.jobstop, job)
-  if callback ~= nil then
-    pcall(callback)
-  end
   return true
+end
+
+function run.delete_action_buffer(name)
+  if running_actions[name] == nil then
+    return
+  end
+  local job = running_actions[name].job
+  pcall(vim.fn.jobstop, job)
+  pcall(vim.fn.nvim_buf_delete, running_actions[name].buf, { force = true })
+  running_actions[name] = nil
 end
 
 return run
